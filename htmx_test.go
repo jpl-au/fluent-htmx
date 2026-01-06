@@ -295,12 +295,12 @@ func TestHxReplaceUrl(t *testing.T) {
 	d := div.New()
 	w := New(d)
 
-	// Test HxReplaceUrl method
-	w.HxReplaceUrl("test-value")
+	// Test HxReplaceURL method
+	w.HxReplaceURL("test-value")
 
 	html := string(d.Render())
 	if !strings.Contains(html, "hx-replace-url=\"test-value\"") {
-		t.Errorf("HxReplaceUrl() did not set attribute correctly, got: %s", html)
+		t.Errorf("HxReplaceURL() did not set attribute correctly, got: %s", html)
 	}
 }
 

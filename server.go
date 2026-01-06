@@ -28,7 +28,8 @@ type TriggerBuilder struct {
 // HxRequest checks if the request was initiated by HTMX by checking for the HX-Request header.
 func HxRequest(r *http.Request) bool {
 	slog.Debug("Checking HTMX request", "HX-Request", r.Header.Get(HXRequestHeader))
-	return strings.ToLower(r.Header.Get(HXRequestHeader)) == "true"
+
+	return strings.ToLower(r.Header.Get(HXRequestHeader)) == boolTrue
 }
 
 // Handle executes the closure if request is from HTMX and returns true to signal early return.
@@ -48,15 +49,17 @@ func HxRequest(r *http.Request) bool {
 func Handle(r *http.Request, fn func()) bool {
 	if HxRequest(r) {
 		fn()
+
 		return true
 	}
+
 	return false
 }
 
 // HxBoosted checks if the request was made from an element with hx-boost="true".
 // It reads the HX-Boosted header.
 func HxBoosted(r *http.Request) bool {
-	return r.Header.Get(HXBoostedHeader) == "true"
+	return r.Header.Get(HXBoostedHeader) == boolTrue
 }
 
 // HxCurrentURL returns the URL of the page that the request was sent from.
@@ -68,7 +71,7 @@ func HxCurrentURL(r *http.Request) string {
 // HxHistoryRestoreRequest checks if the request is for history restoration after a miss in the local history cache.
 // It returns true if the HX-History-Restore-Request header is set to "true".
 func HxHistoryRestoreRequest(r *http.Request) bool {
-	return r.Header.Get(HXHistoryRestoreRequest) == "true"
+	return r.Header.Get(HXHistoryRestoreRequest) == boolTrue
 }
 
 // HxPrompt returns the user's response to a prompt shown via hx-prompt.
@@ -128,7 +131,7 @@ func HxReplaceURL(w http.ResponseWriter, url string) {
 // HxRefresh sends a response that triggers a client-side refresh of the page.
 // It sets the HX-Refresh response header to "true".
 func HxRefresh(w http.ResponseWriter) {
-	w.Header().Set(HXRefreshHeader, "true")
+	w.Header().Set(HXRefreshHeader, boolTrue)
 }
 
 // HxRetarget changes the target of the response to a different element on the page.
@@ -170,6 +173,7 @@ func (tb *TriggerBuilder) addTrigger(header string, eventName string, details in
 	case HXTriggerAfterSwapHeader:
 		tb.triggersAfterSwap = append(tb.triggersAfterSwap, triggerEvent{Name: eventName, Details: details})
 	}
+
 	return tb
 }
 
@@ -188,6 +192,7 @@ func (tb *TriggerBuilder) Write(content string, code int) error {
 		}
 
 		var simpleEvents []string
+
 		detailedEvents := make(map[string]interface{})
 		hasDetailedEvent := false
 
@@ -201,26 +206,31 @@ func (tb *TriggerBuilder) Write(content string, code int) error {
 		}
 
 		var finalHeaderValue string
+
 		if hasDetailedEvent {
 			// If any event has details, all events must be marshaled into a JSON object.
 			// Simple events are added with a boolean true value.
 			for _, se := range simpleEvents {
 				detailedEvents[se] = true
 			}
+
 			jsonBytes, err := json.Marshal(detailedEvents)
 			if err != nil {
 				return fmt.Errorf("failed to marshal HTMX trigger details for %s: %w", headerKey, err)
 			}
+
 			finalHeaderValue = string(jsonBytes)
 		} else {
 			// Only simple events, use comma-separated string.
 			finalHeaderValue = strings.Join(simpleEvents, ",")
 		}
+
 		tb.w.Header().Set(headerKey, finalHeaderValue)
 	}
 
 	tb.w.WriteHeader(code)
-	tb.w.Write([]byte(content))
+	_, _ = tb.w.Write([]byte(content))
+
 	return nil
 }
 
@@ -249,5 +259,5 @@ func (tb *TriggerBuilder) AddTriggerAfterSwap(eventName string, details interfac
 func Response(w http.ResponseWriter, content string, code int) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)
-	w.Write([]byte(content))
+	_, _ = w.Write([]byte(content))
 }

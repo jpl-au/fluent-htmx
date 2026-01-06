@@ -40,35 +40,35 @@ import (
 	"github.com/jpl-au/fluent/node"
 )
 
-// HtmxWrapper provides fluent chaining for HTMX attributes.
+// Wrapper provides fluent chaining for HTMX attributes.
 // It wraps any node.Node implementation and adds HTMX-specific methods.
-// All methods return *HtmxWrapper to enable method chaining.
-type HtmxWrapper struct {
+// All methods return *Wrapper to enable method chaining.
+type Wrapper struct {
 	node node.Node
 }
 
-// New creates a new HtmxWrapper around a node.
+// New creates a new Wrapper around a node.
 // The wrapper delegates all node.Node interface methods to the wrapped node.
-func New(n node.Node) *HtmxWrapper {
-	return &HtmxWrapper{node: n}
+func New(n node.Node) *Wrapper {
+	return &Wrapper{node: n}
 }
 
 // Render delegates to the wrapped node's Render method.
-func (h *HtmxWrapper) Render(w ...io.Writer) []byte {
+func (h *Wrapper) Render(w ...io.Writer) []byte {
 	return h.node.Render(w...)
 }
 
 // RenderBuilder delegates to the wrapped node's RenderBuilder method.
-func (h *HtmxWrapper) RenderBuilder(buf *bytes.Buffer) {
+func (h *Wrapper) RenderBuilder(buf *bytes.Buffer) {
 	h.node.RenderBuilder(buf)
 }
 
 // Nodes delegates to the wrapped node's Nodes method.
-func (h *HtmxWrapper) Nodes() []node.Node {
+func (h *Wrapper) Nodes() []node.Node {
 	return h.node.Nodes()
 }
 
 // SetAttribute delegates to the wrapped node's SetAttribute method.
-func (h *HtmxWrapper) SetAttribute(key string, value string) {
+func (h *Wrapper) SetAttribute(key string, value string) {
 	h.node.SetAttribute(key, value)
 }

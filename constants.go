@@ -1,7 +1,13 @@
 // Package htmx provides constants for HTMX headers and CSS classes.
 package htmx
 
-// HTMX request headers sent by the client
+// Boolean string values for HTMX attributes.
+const (
+	boolTrue  = "true"
+	boolFalse = "false"
+)
+
+// HTMX request headers sent by the client.
 const (
 	HXRequestHeader         = "HX-Request"
 	HXBoostedHeader         = "HX-Boosted"
@@ -13,7 +19,7 @@ const (
 	HXTriggerHeader         = "HX-Trigger"
 )
 
-// HTMX response headers sent by the server
+// HTMX response headers sent by the server.
 const (
 	HXLocationHeader           = "HX-Location"
 	HXPushURLHeader            = "HX-Push-Url"
@@ -27,7 +33,7 @@ const (
 	HXTriggerAfterSwapHeader   = "HX-Trigger-After-Swap"
 )
 
-// CSS classes applied by HTMX during the request lifecycle
+// CSS classes applied by HTMX during the request lifecycle.
 const (
 	HXClassAdded     = "htmx-added"     // Applied to new content before swap, removed after settled
 	HXClassIndicator = "htmx-indicator" // Toggles visible (opacity:1) when htmx-request is present
@@ -36,69 +42,69 @@ const (
 	HXClassSwapping  = "htmx-swapping"  // Applied to target before swap, removed after swapped
 )
 
-// HTMX events that can be used with HxOn() for event handling
+// HTMX events that can be used with HxOn() for event handling.
 const (
-	// Lifecycle events
-	EventAbort              = "abort"                // Send to abort a request
-	EventAfterOnLoad        = "afterOnLoad"          // After AJAX response processing
-	EventAfterProcessNode   = "afterProcessNode"     // After htmx initializes a node
-	EventAfterRequest       = "afterRequest"         // After AJAX request completes
-	EventAfterSettle        = "afterSettle"          // After DOM has settled
-	EventAfterSwap          = "afterSwap"            // After new content swapped in
-	EventBeforeCleanupElt   = "beforeCleanupElement" // Before element disabled or removed
-	EventBeforeOnLoad       = "beforeOnLoad"         // Before response processing
-	EventBeforeProcessNode  = "beforeProcessNode"    // Before htmx initializes a node
-	EventBeforeRequest      = "beforeRequest"        // Before AJAX request
-	EventBeforeSwap         = "beforeSwap"           // Before swap, allows config
-	EventBeforeSend         = "beforeSend"           // Just before request sent
-	EventBeforeTransition   = "beforeTransition"     // Before View Transition swap
-	EventConfigRequest      = "configRequest"        // Before request, customize params/headers
-	EventConfirm            = "confirm"              // After trigger, can cancel request
+	// Lifecycle events.
+	EventAbort             = "abort"                // Send to abort a request
+	EventAfterOnLoad       = "afterOnLoad"          // After AJAX response processing
+	EventAfterProcessNode  = "afterProcessNode"     // After htmx initializes a node
+	EventAfterRequest      = "afterRequest"         // After AJAX request completes
+	EventAfterSettle       = "afterSettle"          // After DOM has settled
+	EventAfterSwap         = "afterSwap"            // After new content swapped in
+	EventBeforeCleanupElt  = "beforeCleanupElement" // Before element disabled or removed
+	EventBeforeOnLoad      = "beforeOnLoad"         // Before response processing
+	EventBeforeProcessNode = "beforeProcessNode"    // Before htmx initializes a node
+	EventBeforeRequest     = "beforeRequest"        // Before AJAX request
+	EventBeforeSwap        = "beforeSwap"           // Before swap, allows config
+	EventBeforeSend        = "beforeSend"           // Just before request sent
+	EventBeforeTransition  = "beforeTransition"     // Before View Transition swap
+	EventConfigRequest     = "configRequest"        // Before request, customize params/headers
+	EventConfirm           = "confirm"              // After trigger, can cancel request
 
-	// History events
-	EventHistoryCacheError       = "historyCacheError"       // Error during cache writing
-	EventHistoryCacheHit         = "historyCacheHit"         // Cache hit in history
-	EventHistoryCacheMiss        = "historyCacheMiss"        // Cache miss in history
-	EventHistoryCacheMissLoad    = "historyCacheMissLoad"    // Successful remote retrieval
+	// History events.
+	EventHistoryCacheError       = "historyCacheError"         // Error during cache writing
+	EventHistoryCacheHit         = "historyCacheHit"           // Cache hit in history
+	EventHistoryCacheMiss        = "historyCacheMiss"          // Cache miss in history
+	EventHistoryCacheMissLoad    = "historyCacheMissLoad"      // Successful remote retrieval
 	EventHistoryCacheMissLoadErr = "historyCacheMissLoadError" // Failed remote retrieval
-	EventHistoryRestore          = "historyRestore"          // History restoration action
-	EventBeforeHistorySave       = "beforeHistorySave"       // Before content saved to cache
-	EventPushedIntoHistory       = "pushedIntoHistory"       // URL pushed into history
-	EventReplacedInHistory       = "replacedInHistory"       // URL replaced in history
+	EventHistoryRestore          = "historyRestore"            // History restoration action
+	EventBeforeHistorySave       = "beforeHistorySave"         // Before content saved to cache
+	EventPushedIntoHistory       = "pushedIntoHistory"         // URL pushed into history
+	EventReplacedInHistory       = "replacedInHistory"         // URL replaced in history
 
-	// Content events
+	// Content events.
 	EventLoad = "load" // New content added to DOM
 
-	// Out-of-band events
+	// Out-of-band events.
 	EventOOBAfterSwap     = "oobAfterSwap"     // After OOB element swapped
 	EventOOBBeforeSwap    = "oobBeforeSwap"    // Before OOB element swap
 	EventOOBErrorNoTarget = "oobErrorNoTarget" // OOB element has no matching ID
 
-	// Error events
-	EventOnLoadError  = "onLoadError"  // Exception during onLoad handling
+	// Error events.
+	EventOnLoadError   = "onLoadError"   // Exception during onLoad handling
 	EventResponseError = "responseError" // HTTP error response (non-200/300)
-	EventSendAbort    = "sendAbort"    // Request aborted
-	EventSendError    = "sendError"    // Network error prevents request
-	EventSwapError    = "swapError"    // Error during swap phase
-	EventTargetError  = "targetError"  // Invalid target specified
-	EventTimeout      = "timeout"      // Request timeout
+	EventSendAbort     = "sendAbort"     // Request aborted
+	EventSendError     = "sendError"     // Network error prevents request
+	EventSwapError     = "swapError"     // Error during swap phase
+	EventTargetError   = "targetError"   // Invalid target specified
+	EventTimeout       = "timeout"       // Request timeout
 
-	// SSE events
+	// SSE events.
 	EventNoSSESourceError = "noSSESourceError" // Element refers to SSE event but no source
 	EventSSEError         = "sseError"         // Error with SSE source
 	EventSSEOpen          = "sseOpen"          // SSE source opened
 
-	// Validation events
+	// Validation events.
 	EventValidationValidate = "validation:validate" // Before element validated
 	EventValidationFailed   = "validation:failed"   // Element fails validation
 	EventValidationHalted   = "validation:halted"   // Request halted due to validation
 
-	// XHR events
-	EventXHRAbort      = "xhr:abort"      // AJAX request aborts
-	EventXHRLoadEnd    = "xhr:loadend"    // AJAX request ends
-	EventXHRLoadStart  = "xhr:loadstart"  // AJAX request starts
-	EventXHRProgress   = "xhr:progress"   // AJAX request progress
+	// XHR events.
+	EventXHRAbort     = "xhr:abort"     // AJAX request aborts
+	EventXHRLoadEnd   = "xhr:loadend"   // AJAX request ends
+	EventXHRLoadStart = "xhr:loadstart" // AJAX request starts
+	EventXHRProgress  = "xhr:progress"  // AJAX request progress
 
-	// Prompt event
+	// Prompt event.
 	EventPrompt = "prompt" // After prompt shown
 )
