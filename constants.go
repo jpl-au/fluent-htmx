@@ -1,4 +1,3 @@
-// Package htmx provides constants for HTMX headers and CSS classes.
 package htmx
 
 // Boolean string values for HTMX attributes.
@@ -12,7 +11,7 @@ const (
 	HXRequestHeader         = "HX-Request"
 	HXBoostedHeader         = "HX-Boosted"
 	HXCurrentURLHeader      = "HX-Current-URL"
-	HXHistoryRestoreRequest = "HX-History-Restore-Request"
+	HXHistoryRestoreRequestHeader = "HX-History-Restore-Request"
 	HXPromptHeader          = "HX-Prompt"
 	HXTargetHeader          = "HX-Target"
 	HXTriggerNameHeader     = "HX-Trigger-Name"

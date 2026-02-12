@@ -1,22 +1,24 @@
-// SSE extension methods for HTMX.
-
 package htmx
 
-// SSESwap sets the sse-swap attribute to listen for a specific SSE event and swap content.
-func (h *Wrapper) SSESwap(eventName string) *Wrapper {
-	h.node.SetAttribute("sse-swap", eventName)
-
-	return h
-}
-
-// SSEConnect sets the sse-connect attribute to establish an SSE connection.
+// SSEConnect establishes a Server-Sent Events connection to the given URL.
+// The connection remains open and automatically reconnects on failure.
+// Requires the SSE extension to be enabled via HxExt("sse").
 func (h *Wrapper) SSEConnect(url string) *Wrapper {
 	h.node.SetAttribute("sse-connect", url)
 
 	return h
 }
 
-// SSEClose sets the sse-close attribute to specify when to close the SSE connection.
+// SSESwap listens for a named SSE event and swaps its data into the element.
+// The event name must match what the server sends in the SSE "event:" field.
+func (h *Wrapper) SSESwap(eventName string) *Wrapper {
+	h.node.SetAttribute("sse-swap", eventName)
+
+	return h
+}
+
+// SSEClose closes the SSE connection when the specified event is received.
+// Useful for finite streams where the server signals completion.
 func (h *Wrapper) SSEClose(eventName string) *Wrapper {
 	h.node.SetAttribute("sse-close", eventName)
 

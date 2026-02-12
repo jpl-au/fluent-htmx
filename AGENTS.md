@@ -45,7 +45,7 @@ htmx.New(div).HxOn("click", `/* also accepts standard DOM events */`)
 `HxBoost(bool)` `HxPreserve(bool)` `HxValidate(bool)` - all accept bool, convert to "true"/"false" strings
 
 ### URL Management
-`HxPushURL(value)` `HxReplaceUrl(url)` - accepts "true", "false", or custom URL string
+`HxPushURL(value)` `HxReplaceURL(url)` - accepts "true", "false", or custom URL string
 
 ### Form & Validation
 `HxVals(json)` `HxHeaders(json)` `HxParams(params)` `HxInclude(selector)` `HxEncoding(encoding)` `HxConfirm(message)` `HxPrompt(message)`
@@ -63,12 +63,12 @@ htmx.New(div).HxOn("click", `/* also accepts standard DOM events */`)
 `Handle(r, fn)` - executes fn if HTMX request, returns bool
 
 ### Read Request Headers
-`HxBoosted(r)` `HxCurrentURL(r)` `HxTarget(r)` `HxTrigger(r)` `HxTriggerName(r)` `HxPrompt(r)`
+`HxBoosted(r)` `HxCurrentURL(r)` `HxHistoryRestoreRequest(r)` `HxTarget(r)` `HxTrigger(r)` `HxTriggerName(r)` `HxPrompt(r)`
 
 ### Write Response Headers
-**URL:** `HxPushURL(w, url)` `HxReplaceURL(w, url)` `HxRedirect(w, r, url, code)`
+**URL:** `HxPushURL(w, url)` `HxReplaceURL(w, url)` `HxRedirect(w, r, url, code)` `HxLocation(w, url)`
 **Swap:** `HxRetarget(w, selector)` `HxReswap(w, strategy)` `HxReselect(w, selector)`
-**Other:** `HxRefresh(w)` `SwapError(w, msg, target, swap)`
+**Other:** `HxRefresh(w)`
 
 ### Trigger Events
 ```go

@@ -10,9 +10,12 @@ func (h *Wrapper) Preload(trigger string) *Wrapper {
 
 // PreloadImages enables preloading of linked image resources from preloaded HTML fragments.
 func (h *Wrapper) PreloadImages(enabled bool) *Wrapper {
+	value := boolFalse
 	if enabled {
-		h.node.SetAttribute("preload-images", boolTrue)
+		value = boolTrue
 	}
+
+	h.node.SetAttribute("preload-images", value)
 
 	return h
 }
