@@ -11,6 +11,8 @@
 
 ## Pattern
 
+`htmx.New()` accepts `node.Element` — any HTML element created via Fluent's element packages. Text nodes, function components, and conditionals are `node.Node` only and cannot be wrapped.
+
 ```go
 // Client-side: wrap element, chain HTMX methods
 htmx.New(element).HxPost("/api/endpoint").HxTarget("#result").HxOn("after-swap", "console.log('done')")

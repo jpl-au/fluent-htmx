@@ -4,7 +4,7 @@ package htmx
 // The URL can be absolute or relative. Supports optional ws:// or wss:// prefixes.
 // Defaults to the page's scheme, host, and port if not specified.
 func (h *Wrapper) WsConnect(url string) *Wrapper {
-	h.node.SetAttribute("ws-connect", url)
+	h.element.SetAttribute("ws-connect", url)
 
 	return h
 }
@@ -13,7 +13,7 @@ func (h *Wrapper) WsConnect(url string) *Wrapper {
 // Form values are automatically serialised as JSON and sent to the nearest WebSocket connection.
 // Includes a HEADERS field with standard htmx request headers.
 func (h *Wrapper) WsSend() *Wrapper {
-	h.node.SetAttribute("ws-send", "")
+	h.element.SetAttribute("ws-send", "")
 
 	return h
 }

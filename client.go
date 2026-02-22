@@ -5,35 +5,35 @@ package htmx
 
 // HxGet issues an AJAX GET request to the given URL and swaps the response into the DOM.
 func (h *Wrapper) HxGet(url string) *Wrapper {
-	h.node.SetAttribute("hx-get", url)
+	h.element.SetAttribute("hx-get", url)
 
 	return h
 }
 
 // HxPost issues an AJAX POST request to the given URL and swaps the response into the DOM.
 func (h *Wrapper) HxPost(url string) *Wrapper {
-	h.node.SetAttribute("hx-post", url)
+	h.element.SetAttribute("hx-post", url)
 
 	return h
 }
 
 // HxPut issues an AJAX PUT request to the given URL and swaps the response into the DOM.
 func (h *Wrapper) HxPut(url string) *Wrapper {
-	h.node.SetAttribute("hx-put", url)
+	h.element.SetAttribute("hx-put", url)
 
 	return h
 }
 
 // HxPatch issues an AJAX PATCH request to the given URL and swaps the response into the DOM.
 func (h *Wrapper) HxPatch(url string) *Wrapper {
-	h.node.SetAttribute("hx-patch", url)
+	h.element.SetAttribute("hx-patch", url)
 
 	return h
 }
 
 // HxDelete issues an AJAX DELETE request to the given URL and swaps the response into the DOM.
 func (h *Wrapper) HxDelete(url string) *Wrapper {
-	h.node.SetAttribute("hx-delete", url)
+	h.element.SetAttribute("hx-delete", url)
 
 	return h
 }
@@ -42,7 +42,7 @@ func (h *Wrapper) HxDelete(url string) *Wrapper {
 // Common strategies: "innerHTML", "outerHTML", "beforebegin", "afterbegin", "beforeend", "afterend", "delete", "none".
 // Modifiers can be appended: "innerHTML swap:500ms settle:100ms scroll:top".
 func (h *Wrapper) HxSwap(strategy string) *Wrapper {
-	h.node.SetAttribute("hx-swap", strategy)
+	h.element.SetAttribute("hx-swap", strategy)
 
 	return h
 }
@@ -50,7 +50,7 @@ func (h *Wrapper) HxSwap(strategy string) *Wrapper {
 // HxTarget specifies a CSS selector for the element that will receive the swapped content.
 // Without this, the element that triggers the request is the swap target.
 func (h *Wrapper) HxTarget(target string) *Wrapper {
-	h.node.SetAttribute("hx-target", target)
+	h.element.SetAttribute("hx-target", target)
 
 	return h
 }
@@ -59,7 +59,7 @@ func (h *Wrapper) HxTarget(target string) *Wrapper {
 // Supports standard DOM events, HTMX-specific events, and modifiers.
 // Example: "keyup changed delay:500ms" triggers on keyup after 500ms of inactivity.
 func (h *Wrapper) HxTrigger(trigger string) *Wrapper {
-	h.node.SetAttribute("hx-trigger", trigger)
+	h.element.SetAttribute("hx-trigger", trigger)
 
 	return h
 }
@@ -72,7 +72,7 @@ func (h *Wrapper) HxBoost(enabled bool) *Wrapper {
 		value = boolTrue
 	}
 
-	h.node.SetAttribute("hx-boost", value)
+	h.element.SetAttribute("hx-boost", value)
 
 	return h
 }
@@ -80,7 +80,7 @@ func (h *Wrapper) HxBoost(enabled bool) *Wrapper {
 // HxConfirm shows a browser confirmation dialog before issuing the request.
 // The request is only sent if the user confirms.
 func (h *Wrapper) HxConfirm(message string) *Wrapper {
-	h.node.SetAttribute("hx-confirm", message)
+	h.element.SetAttribute("hx-confirm", message)
 
 	return h
 }
@@ -88,7 +88,7 @@ func (h *Wrapper) HxConfirm(message string) *Wrapper {
 // HxVals adds extra JSON-encoded values to the request parameters.
 // Example: `{"key": "value"}`.
 func (h *Wrapper) HxVals(values string) *Wrapper {
-	h.node.SetAttribute("hx-vals", values)
+	h.element.SetAttribute("hx-vals", values)
 
 	return h
 }
@@ -96,7 +96,7 @@ func (h *Wrapper) HxVals(values string) *Wrapper {
 // HxHeaders adds extra JSON-encoded headers to the AJAX request.
 // Example: `{"X-Custom-Header": "value"}`.
 func (h *Wrapper) HxHeaders(headers string) *Wrapper {
-	h.node.SetAttribute("hx-headers", headers)
+	h.element.SetAttribute("hx-headers", headers)
 
 	return h
 }
@@ -104,7 +104,7 @@ func (h *Wrapper) HxHeaders(headers string) *Wrapper {
 // HxIndicator specifies a CSS selector for an element to show while the request is in flight.
 // The targeted element receives the htmx-request class, which can be styled to show a spinner.
 func (h *Wrapper) HxIndicator(indicator string) *Wrapper {
-	h.node.SetAttribute("hx-indicator", indicator)
+	h.element.SetAttribute("hx-indicator", indicator)
 
 	return h
 }
@@ -116,7 +116,7 @@ func (h *Wrapper) HxIndicator(indicator string) *Wrapper {
 //   - HxPushURL("false") → disables URL pushing
 //   - HxPushURL("/custom/path") → pushes a custom URL
 func (h *Wrapper) HxPushURL(value string) *Wrapper {
-	h.node.SetAttribute("hx-push-url", value)
+	h.element.SetAttribute("hx-push-url", value)
 
 	return h
 }
@@ -125,7 +125,7 @@ func (h *Wrapper) HxPushURL(value string) *Wrapper {
 // Multiple extensions are comma-separated. Extensions must be loaded via script tag first.
 // Example: "ws" or "sse,preload".
 func (h *Wrapper) HxExt(extensions string) *Wrapper {
-	h.node.SetAttribute("hx-ext", extensions)
+	h.element.SetAttribute("hx-ext", extensions)
 
 	return h
 }
@@ -134,7 +134,7 @@ func (h *Wrapper) HxExt(extensions string) *Wrapper {
 // discarding the rest of the response. Useful when the server returns a full page
 // but only a fragment is needed.
 func (h *Wrapper) HxSelect(selector string) *Wrapper {
-	h.node.SetAttribute("hx-select", selector)
+	h.element.SetAttribute("hx-select", selector)
 
 	return h
 }
@@ -143,7 +143,7 @@ func (h *Wrapper) HxSelect(selector string) *Wrapper {
 // These elements are swapped into matching targets elsewhere in the DOM,
 // independently of the primary swap target.
 func (h *Wrapper) HxSelectOOB(selector string) *Wrapper {
-	h.node.SetAttribute("hx-select-oob", selector)
+	h.element.SetAttribute("hx-select-oob", selector)
 
 	return h
 }
@@ -152,7 +152,7 @@ func (h *Wrapper) HxSelectOOB(selector string) *Wrapper {
 // The element is swapped into the DOM by matching its ID, regardless of the primary swap target.
 // Typically set on server-rendered response fragments rather than request elements.
 func (h *Wrapper) HxSwapOOB(value string) *Wrapper {
-	h.node.SetAttribute("hx-swap-oob", value)
+	h.element.SetAttribute("hx-swap-oob", value)
 
 	return h
 }
@@ -160,7 +160,7 @@ func (h *Wrapper) HxSwapOOB(value string) *Wrapper {
 // HxReplaceURL replaces the current URL in the browser location bar without adding a history entry.
 // Unlike HxPushURL, the user cannot navigate back to the previous URL.
 func (h *Wrapper) HxReplaceURL(url string) *Wrapper {
-	h.node.SetAttribute("hx-replace-url", url)
+	h.element.SetAttribute("hx-replace-url", url)
 
 	return h
 }
@@ -169,7 +169,7 @@ func (h *Wrapper) HxReplaceURL(url string) *Wrapper {
 // Accepts "*" (all), "none", or a comma-separated list of parameter names.
 // Prefix with "not " to exclude specific parameters: "not name,email".
 func (h *Wrapper) HxParams(params string) *Wrapper {
-	h.node.SetAttribute("hx-params", params)
+	h.element.SetAttribute("hx-params", params)
 
 	return h
 }
@@ -177,7 +177,7 @@ func (h *Wrapper) HxParams(params string) *Wrapper {
 // HxInclude includes values from other elements in the request using a CSS selector.
 // Useful for submitting inputs that are outside the triggering element's form.
 func (h *Wrapper) HxInclude(selector string) *Wrapper {
-	h.node.SetAttribute("hx-include", selector)
+	h.element.SetAttribute("hx-include", selector)
 
 	return h
 }
@@ -186,7 +186,7 @@ func (h *Wrapper) HxInclude(selector string) *Wrapper {
 // Prevents race conditions when multiple elements can trigger overlapping requests.
 // Strategies: "drop", "abort", "replace", "queue first", "queue last", "queue all".
 func (h *Wrapper) HxSync(strategy string) *Wrapper {
-	h.node.SetAttribute("hx-sync", strategy)
+	h.element.SetAttribute("hx-sync", strategy)
 
 	return h
 }
@@ -194,7 +194,7 @@ func (h *Wrapper) HxSync(strategy string) *Wrapper {
 // HxPrompt shows a browser prompt dialog before issuing the request.
 // The user's input is sent to the server via the HX-Prompt request header.
 func (h *Wrapper) HxPrompt(message string) *Wrapper {
-	h.node.SetAttribute("hx-prompt", message)
+	h.element.SetAttribute("hx-prompt", message)
 
 	return h
 }
@@ -202,7 +202,7 @@ func (h *Wrapper) HxPrompt(message string) *Wrapper {
 // HxEncoding changes the request encoding type.
 // The only non-default value is "multipart/form-data" for file uploads.
 func (h *Wrapper) HxEncoding(encoding string) *Wrapper {
-	h.node.SetAttribute("hx-encoding", encoding)
+	h.element.SetAttribute("hx-encoding", encoding)
 
 	return h
 }
@@ -216,7 +216,7 @@ func (h *Wrapper) HxPreserve(preserve bool) *Wrapper {
 		value = boolTrue
 	}
 
-	h.node.SetAttribute("hx-preserve", value)
+	h.element.SetAttribute("hx-preserve", value)
 
 	return h
 }
@@ -224,7 +224,7 @@ func (h *Wrapper) HxPreserve(preserve bool) *Wrapper {
 // HxHistory prevents the page from being saved to the browser's localStorage history cache.
 // Use HxHistory("false") on pages that contain sensitive data to avoid caching it.
 func (h *Wrapper) HxHistory(value string) *Wrapper {
-	h.node.SetAttribute("hx-history", value)
+	h.element.SetAttribute("hx-history", value)
 
 	return h
 }
@@ -232,7 +232,7 @@ func (h *Wrapper) HxHistory(value string) *Wrapper {
 // HxHistoryElt designates this element as the snapshot source for history navigation.
 // By default HTMX snapshots the entire body; this narrows it to a specific element.
 func (h *Wrapper) HxHistoryElt() *Wrapper {
-	h.node.SetAttribute("hx-history-elt", boolTrue)
+	h.element.SetAttribute("hx-history-elt", boolTrue)
 
 	return h
 }
@@ -241,7 +241,7 @@ func (h *Wrapper) HxHistoryElt() *Wrapper {
 // The attribute's presence alone is sufficient; its value is ignored.
 // This cannot be overridden by any descendant content.
 func (h *Wrapper) HxDisable() *Wrapper {
-	h.node.SetAttribute("hx-disable", boolTrue)
+	h.element.SetAttribute("hx-disable", boolTrue)
 
 	return h
 }
@@ -249,7 +249,7 @@ func (h *Wrapper) HxDisable() *Wrapper {
 // HxDisabledElt adds the "disabled" attribute to the matched elements while a request is in flight.
 // Useful for preventing duplicate form submissions by disabling the submit button.
 func (h *Wrapper) HxDisabledElt(selector string) *Wrapper {
-	h.node.SetAttribute("hx-disabled-elt", selector)
+	h.element.SetAttribute("hx-disabled-elt", selector)
 
 	return h
 }
@@ -257,14 +257,14 @@ func (h *Wrapper) HxDisabledElt(selector string) *Wrapper {
 // HxDisinherit prevents child elements from inheriting specific HTMX attributes.
 // Accepts a space-separated list of attribute names or "*" to disable all inheritance.
 func (h *Wrapper) HxDisinherit(attributes string) *Wrapper {
-	h.node.SetAttribute("hx-disinherit", attributes)
+	h.element.SetAttribute("hx-disinherit", attributes)
 
 	return h
 }
 
 // HxInherit re-enables inheritance for specific attributes that were disabled by a parent's HxDisinherit("*").
 func (h *Wrapper) HxInherit(attributes string) *Wrapper {
-	h.node.SetAttribute("hx-inherit", attributes)
+	h.element.SetAttribute("hx-inherit", attributes)
 
 	return h
 }
@@ -277,7 +277,7 @@ func (h *Wrapper) HxValidate(validate bool) *Wrapper {
 		value = boolTrue
 	}
 
-	h.node.SetAttribute("hx-validate", value)
+	h.element.SetAttribute("hx-validate", value)
 
 	return h
 }
@@ -286,7 +286,7 @@ func (h *Wrapper) HxValidate(validate bool) *Wrapper {
 // Supported keys: "timeout" (ms), "credentials" (bool), "noHeaders" (bool).
 // Example: `{"timeout": 5000}`.
 func (h *Wrapper) HxRequest(config string) *Wrapper {
-	h.node.SetAttribute("hx-request", config)
+	h.element.SetAttribute("hx-request", config)
 
 	return h
 }
@@ -294,7 +294,7 @@ func (h *Wrapper) HxRequest(config string) *Wrapper {
 // HxVars is deprecated in favour of HxVals. It evaluates JavaScript expressions
 // to compute request values, which requires allowEval to be enabled.
 func (h *Wrapper) HxVars(variables string) *Wrapper {
-	h.node.SetAttribute("hx-vars", variables)
+	h.element.SetAttribute("hx-vars", variables)
 
 	return h
 }
@@ -304,7 +304,7 @@ func (h *Wrapper) HxVars(variables string) *Wrapper {
 // rather than in a separate script tag.
 // Example: HxOn("after-swap", "console.log('swapped')") → hx-on::after-swap="console.log('swapped')".
 func (h *Wrapper) HxOn(event string, handler string) *Wrapper {
-	h.node.SetAttribute("hx-on::"+event, handler)
+	h.element.SetAttribute("hx-on::"+event, handler)
 
 	return h
 }

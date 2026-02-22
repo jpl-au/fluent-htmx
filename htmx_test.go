@@ -15,12 +15,12 @@ func TestNew(t *testing.T) {
 		t.Fatal("New() returned nil")
 	}
 
-	if w.node != d {
-		t.Error("Wrapper does not wrap the provided node")
+	if w.element != d {
+		t.Error("Wrapper does not wrap the provided element")
 	}
 }
 
-func TestNodeInterfaceDelegation(t *testing.T) {
+func TestElementInterfaceDelegation(t *testing.T) {
 	d := div.New().ID("test")
 	w := New(d)
 

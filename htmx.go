@@ -40,35 +40,24 @@ import (
 	"github.com/jpl-au/fluent/node"
 )
 
-// Wrapper provides fluent chaining for HTMX attributes.
-// It wraps any node.Node implementation and adds HTMX-specific methods.
-// All methods return *Wrapper to enable method chaining.
+// Wrapper adds HTMX attribute methods to any node.Element.
+// It delegates all node.Element methods to the wrapped element so it can be
+// used anywhere the original element would be. All HTMX methods return *Wrapper
+// to enable fluent chaining.
 type Wrapper struct {
-	node node.Node
+	element node.Element
 }
 
-// New creates a new Wrapper around a node.
-// The wrapper delegates all node.Node interface methods to the wrapped node.
-func New(n node.Node) *Wrapper {
-	return &Wrapper{node: n}
+// New wraps an element to enable HTMX attribute chaining.
+func New(n node.Element) *Wrapper {
+	return &Wrapper{element: n}
 }
 
-// Render delegates to the wrapped node's Render method.
-func (h *Wrapper) Render(w ...io.Writer) []byte {
-	return h.node.Render(w...)
-}
+// node.Element delegation — all calls pass through to the wrapped element.
 
-// RenderBuilder delegates to the wrapped node's RenderBuilder method.
-func (h *Wrapper) RenderBuilder(buf *bytes.Buffer) {
-	h.node.RenderBuilder(buf)
-}
-
-// Nodes delegates to the wrapped node's Nodes method.
-func (h *Wrapper) Nodes() []node.Node {
-	return h.node.Nodes()
-}
-
-// SetAttribute delegates to the wrapped node's SetAttribute method.
-func (h *Wrapper) SetAttribute(key string, value string) {
-	h.node.SetAttribute(key, value)
-}
+func (h *Wrapper) Render(w ...io.Writer) []byte        { return h.element.Render(w...) }
+func (h *Wrapper) RenderBuilder(buf *bytes.Buffer)      { h.element.RenderBuilder(buf) }
+func (h *Wrapper) Nodes() []node.Node                   { return h.element.Nodes() }
+func (h *Wrapper) SetAttribute(key string, value string) { h.element.SetAttribute(key, value) }
+func (h *Wrapper) RenderOpen(buf *bytes.Buffer)         { h.element.RenderOpen(buf) }
+func (h *Wrapper) RenderClose(buf *bytes.Buffer)        { h.element.RenderClose(buf) }

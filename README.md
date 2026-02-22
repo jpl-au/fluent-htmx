@@ -10,13 +10,13 @@ go get github.com/jpl-au/fluent-htmx
 
 ## Documentation for LLMs
 
-- `LLM-GUIDE.md` - Comprehensive guide to help LLMs work with Fluent HTMX
+- `AGENTS.md` - Comprehensive guide to help LLMs work with Fluent HTMX
 
 ---
 
 # Client-Side Attributes
 
-Wrap any Fluent element with `htmx.New()` to add HTMX attributes:
+Wrap any Fluent element with `htmx.New()` to add HTMX attributes. `New()` accepts `node.Element` — any HTML element created via Fluent's element packages (e.g. `div.New()`, `button.Text()`). Text nodes, function components, and conditionals are not elements and cannot be wrapped:
 
 ```go
 package main

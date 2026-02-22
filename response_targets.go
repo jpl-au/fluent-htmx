@@ -4,7 +4,7 @@ import "fmt"
 
 // HxTargetError sets the hx-target-error attribute to handle both 4xx and 5xx error responses.
 func (h *Wrapper) HxTargetError(selector string) *Wrapper {
-	h.node.SetAttribute("hx-target-error", selector)
+	h.element.SetAttribute("hx-target-error", selector)
 
 	return h
 }
@@ -13,7 +13,7 @@ func (h *Wrapper) HxTargetError(selector string) *Wrapper {
 // Example: HxTargetCode(404, "#not-found") sets hx-target-404="#not-found".
 func (h *Wrapper) HxTargetCode(code int, selector string) *Wrapper {
 	attr := fmt.Sprintf("hx-target-%d", code)
-	h.node.SetAttribute(attr, selector)
+	h.element.SetAttribute(attr, selector)
 
 	return h
 }
@@ -23,7 +23,7 @@ func (h *Wrapper) HxTargetCode(code int, selector string) *Wrapper {
 // Example: HxTargetCodePattern("5*", "#server-error") matches all 5xx codes.
 func (h *Wrapper) HxTargetCodePattern(pattern string, selector string) *Wrapper {
 	attr := "hx-target-" + pattern
-	h.node.SetAttribute(attr, selector)
+	h.element.SetAttribute(attr, selector)
 
 	return h
 }
