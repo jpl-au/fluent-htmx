@@ -309,3 +309,7 @@ htmx.New(div).HxOn("after-swap", handler)
 ```go
 htmx.New(btn).HxDelete("/items/"+id).HxConfirm("Sure?").HxTarget("closest .item").HxSwap("outerHTML")
 ```
+
+## Profile-Guided Optimization (PGO)
+
+Applications using Fluent HTMX benefit from [PGO](https://go.dev/doc/pgo) (Go 1.21+). Collect a CPU profile from production, place it as `default.pgo` in the main package, and `go build` applies it automatically. Expect 10-20% speed improvements with no code changes. Allocations are unaffected — PGO improves inlining decisions only.
