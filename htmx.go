@@ -9,6 +9,7 @@
 // Extension support is provided in separate files:
 //   - ws.go: WebSocket extension (ws-connect, ws-send)
 //   - sse.go: Server-Sent Events extension (sse-connect, sse-swap, sse-close)
+//   - sse_server.go: Server-side SSE writer for sending events to the browser
 //   - preload.go: Preload extension (preload, preload-images)
 //   - response_targets.go: Response targets extension (hx-target-error, hx-target-*)
 //   - head_support.go: Head support extension (hx-head)

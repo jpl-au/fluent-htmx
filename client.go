@@ -39,10 +39,9 @@ func (h *Wrapper) HxDelete(url string) *Wrapper {
 }
 
 // HxSwap controls how the response content is swapped into the DOM.
-// Common strategies: "innerHTML", "outerHTML", "beforebegin", "afterbegin", "beforeend", "afterend", "delete", "none".
-// Modifiers can be appended: "innerHTML swap:500ms settle:100ms scroll:top".
-func (h *Wrapper) HxSwap(strategy string) *Wrapper {
-	h.element.SetAttribute("hx-swap", strategy)
+// Use the predefined Swap* constants or CustomSwap() for strategies with modifiers.
+func (h *Wrapper) HxSwap(strategy SwapStrategy) *Wrapper {
+	h.element.SetAttribute("hx-swap", string(strategy))
 
 	return h
 }

@@ -6,6 +6,26 @@ const (
 	boolFalse = "false"
 )
 
+// SwapStrategy defines the strategy used when swapping content into the DOM.
+type SwapStrategy string
+
+const (
+	SwapInnerHTML   SwapStrategy = "innerHTML"   // Replace the inner html of the target element
+	SwapOuterHTML   SwapStrategy = "outerHTML"   // Replace the entire target element with the response
+	SwapBeforeBegin SwapStrategy = "beforebegin" // Insert the response before the target element
+	SwapAfterBegin  SwapStrategy = "afterbegin"  // Insert the response before the first child of the target element
+	SwapBeforeEnd   SwapStrategy = "beforeend"   // Insert the response after the last child of the target element
+	SwapAfterEnd    SwapStrategy = "afterend"    // Insert the response after the target element
+	SwapDelete      SwapStrategy = "delete"      // Deletes the target element regardless of the response
+	SwapNone        SwapStrategy = "none"        // Does not target any part of the DOM
+)
+
+// CustomSwap creates a custom swap strategy string, allowing for modifiers
+// like "innerHTML swap:1s".
+func CustomSwap(strategy string) SwapStrategy {
+	return SwapStrategy(strategy)
+}
+
 // HTMX request headers sent by the client.
 const (
 	HXRequestHeader               = "HX-Request"

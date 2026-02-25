@@ -1,10 +1,13 @@
 package htmx
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/jpl-au/fluent/node"
 )
 
 // triggerEvent represents a single HTMX trigger event.
@@ -146,8 +149,8 @@ func HxRetarget(w http.ResponseWriter, selector string) {
 // HxReswap overrides the client-side hx-swap strategy from the server.
 // For example, the server can change "innerHTML" to "outerHTML" to replace the
 // entire target element when returning an error state.
-func HxReswap(w http.ResponseWriter, method string) {
-	w.Header().Set(HXReswapHeader, method)
+func HxReswap(w http.ResponseWriter, strategy SwapStrategy) {
+	w.Header().Set(HXReswapHeader, string(strategy))
 }
 
 // HxReselect overrides the client-side hx-select, choosing a different fragment
@@ -183,10 +186,10 @@ func (tb *TriggerBuilder) addTrigger(header string, eventName string, details an
 	return tb
 }
 
-// Write sets the accumulated trigger headers and writes the response.
+// Write renders the node, sets the accumulated trigger headers, and writes the response.
 // Simple events (no details) are comma-separated; if any event has details,
 // all events are marshaled into a single JSON object per the HTMX spec.
-func (tb *TriggerBuilder) Write(content string, code int) error {
+func (tb *TriggerBuilder) Write(n node.Node, code int) error {
 	triggerHeaders := map[string][]triggerEvent{
 		HXTriggerHeader:            tb.triggers,
 		HXTriggerAfterSettleHeader: tb.triggersAfterSettle,
@@ -238,7 +241,10 @@ func (tb *TriggerBuilder) Write(content string, code int) error {
 	tb.w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	tb.w.WriteHeader(code)
 
-	if _, err := tb.w.Write([]byte(content)); err != nil {
+	var buf bytes.Buffer
+	n.RenderBuilder(&buf)
+
+	if _, err := tb.w.Write(buf.Bytes()); err != nil {
 		return fmt.Errorf("failed to write response: %w", err)
 	}
 
@@ -266,9 +272,17 @@ func (tb *TriggerBuilder) AddTriggerAfterSwap(eventName string, details any) *Tr
 	return tb.addTrigger(HXTriggerAfterSwapHeader, eventName, details)
 }
 
-// Response writes a simple HTML response with the given status code.
-func Response(w http.ResponseWriter, content string, code int) {
+// Response renders the node and writes an HTML response with the given status code.
+func Response(w http.ResponseWriter, n node.Node, code int) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)
-	_, _ = w.Write([]byte(content))
+
+	var buf bytes.Buffer
+	n.RenderBuilder(&buf)
+
+	if _, err := w.Write(buf.Bytes()); err != nil {
+		return fmt.Errorf("failed to write response: %w", err)
+	}
+
+	return nil
 }

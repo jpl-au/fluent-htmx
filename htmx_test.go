@@ -38,7 +38,7 @@ func TestMethodChaining(t *testing.T) {
 	w := New(d)
 
 	// All methods must return *Wrapper to support chaining.
-	result := w.HxGet("/api/users").HxTarget("#result").HxSwap("innerHTML").HxTrigger("click")
+	result := w.HxGet("/api/users").HxTarget("#result").HxSwap(SwapInnerHTML).HxTrigger("click")
 
 	if result == nil {
 		t.Fatal("method chaining returned nil")
@@ -116,11 +116,23 @@ func TestHxSwap(t *testing.T) {
 	d := div.New()
 	w := New(d)
 
-	w.HxSwap("outerHTML")
+	w.HxSwap(SwapOuterHTML)
 
 	html := string(d.Render())
 	if !strings.Contains(html, `hx-swap="outerHTML"`) {
 		t.Errorf("HxSwap() did not set attribute correctly, got: %s", html)
+	}
+}
+
+func TestHxSwapCustom(t *testing.T) {
+	d := div.New()
+	w := New(d)
+
+	w.HxSwap(CustomSwap("innerHTML swap:1s"))
+
+	html := string(d.Render())
+	if !strings.Contains(html, `hx-swap="innerHTML swap:1s"`) {
+		t.Errorf("HxSwap() with CustomSwap did not set attribute correctly, got: %s", html)
 	}
 }
 

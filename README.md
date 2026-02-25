@@ -14,56 +14,6 @@ go get github.com/jpl-au/fluent-htmx
 
 ---
 
-# Embedded Assets
-
-Fluent HTMX embeds htmx 2.0.8 and its supported extensions so you have zero external JS dependencies. No CDN links, no manual downloads — `go get` is all you need.
-
-## Serving the Assets
-
-Mount the handler at a path prefix in your router:
-
-```go
-mux.Handle("/_htmx/", htmx.Handler("/_htmx/"))
-```
-
-The handler sets `Cache-Control: public, max-age=31536000, immutable` since the files are versioned by the Go module.
-
-## Script Tag Helpers
-
-Use the fluent node helpers to add `<script>` tags to your page head:
-
-```go
-import (
-    "github.com/jpl-au/fluent/html5/head"
-    "github.com/jpl-au/fluent-htmx"
-)
-
-head.New(
-    htmx.Script("/_htmx/"),                     // htmx core
-    htmx.ExtScript("/_htmx/", "ws"),            // WebSocket extension
-    htmx.ExtScript("/_htmx/", "sse"),           // SSE extension
-    htmx.ExtScript("/_htmx/", "preload"),       // Preload extension
-    htmx.ExtScript("/_htmx/", "response-targets"), // Response targets extension
-    htmx.ExtScript("/_htmx/", "head-support"),  // Head support extension
-)
-```
-
-## Custom Serving
-
-If you need to serve the files through your own middleware or at a different path, use the raw filesystem:
-
-```go
-fs := htmx.Assets() // fs.FS rooted at the dist/ directory
-```
-
-## Version
-
-```go
-htmx.Version // "2.0.8"
-```
-
----
-
 # Client-Side Attributes
 
 Wrap any Fluent element with `htmx.New()` to add HTMX attributes. `New()` accepts `node.Element` — any HTML element created via Fluent's element packages (e.g. `div.New()`, `button.Text()`). Text nodes, function components, and conditionals are not elements and cannot be wrapped:
@@ -86,7 +36,7 @@ func main() {
         htmx.New(btn).
             HxGet("/api/items").
             HxTarget("#results").
-            HxSwap("beforeend")
+            HxSwap(htmx.SwapBeforeEnd)
 
         div.New(btn).ID("results").Render(w)
     })
@@ -105,7 +55,7 @@ htmx.New(elem).
     HxPatch("/api/patch").
     HxDelete("/api/remove").
     HxTarget("#result").
-    HxSwap("innerHTML").
+    HxSwap(htmx.SwapInnerHTML).
     HxTrigger("click").
     HxIndicator("#spinner").
     HxConfirm("Are you sure?")
@@ -140,6 +90,8 @@ htmx.New(elem).
 | `HxDisabledElt(selector)` | `hx-disabled-elt` | Disable elements during request |
 | `HxExt(extensions)` | `hx-ext` | Enable extensions |
 | `HxOn(event, handler)` | `hx-on::event` | Inline event handlers |
+
+`HxSwap` accepts a `SwapStrategy` type. Use the predefined constants `SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `SwapAfterBegin`, `SwapBeforeEnd`, `SwapAfterEnd`, `SwapDelete`, `SwapNone`, or `CustomSwap("innerHTML swap:1s")` for strategies with modifiers.
 
 ## Extensions
 
@@ -248,7 +200,7 @@ htmx.HxRefresh(w)
 
 // Swap control
 htmx.HxRetarget(w, "#other-element")
-htmx.HxReswap(w, "outerHTML")
+htmx.HxReswap(w, htmx.SwapOuterHTML)
 htmx.HxReselect(w, ".content")
 ```
 
@@ -258,7 +210,7 @@ htmx.HxReselect(w, ".content")
 // Simple event
 htmx.NewTrigger(w).
     AddTrigger("itemAdded", nil).
-    Write("<div>Item added</div>", http.StatusOK)
+    Write(div.Text("Item added"), http.StatusOK)
 
 // Event with details
 htmx.NewTrigger(w).
@@ -266,15 +218,34 @@ htmx.NewTrigger(w).
         "level": "success",
         "text":  "Item saved",
     }).
-    Write("", http.StatusOK)
+    Write(text.RawText(""), http.StatusOK)
 
 // Multiple events at different phases
 htmx.NewTrigger(w).
     AddTrigger("formReset", nil).
     AddTriggerAfterSwap("focusInput", nil).
     AddTriggerAfterSettle("scrollToTop", nil).
-    Write("<form>...</form>", http.StatusOK)
+    Write(formNode, http.StatusOK)
 ```
+
+## Server-Sent Events
+
+The package includes a server-side SSE writer that pairs with the client-side extension. It handles the SSE protocol, multi-line data, and response flushing:
+
+```go
+func eventsHandler(w http.ResponseWriter, r *http.Request) {
+    sse, err := htmx.NewSSE(w)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    sse.Send("message", "<div>New content</div>")
+    sse.Send("done", "")  // triggers sse-close on client
+}
+```
+
+`NewSSE` sets `Content-Type: text/event-stream`, `Cache-Control: no-cache`, and `Connection: keep-alive`. It returns an error if the ResponseWriter does not support flushing. Each `Send` call writes a named SSE event and flushes immediately.
 
 ---
 

@@ -14,36 +14,6 @@ The following methods **have never existed** in this package. Do not use them:
 
 If you need `SetData()` or `SetAria()`, call them on the Fluent element **before** wrapping it with `htmx.New()`.
 
-## Embedded Assets (embed.go, handler.go, script.go)
-
-The package embeds htmx 2.0.8 and supported extensions via `go:embed`. No CDN or manual downloads required.
-
-### Serving
-
-```go
-mux.Handle("/_htmx/", htmx.Handler("/_htmx/"))
-```
-
-### Script Helpers
-
-| Function | Output |
-|----------|--------|
-| `Script(prefix string)` | `<script src="{prefix}htmx.min.js"></script>` |
-| `ExtScript(prefix, name string)` | `<script src="{prefix}ext/{name}.js"></script>` |
-
-Both return `node.Node` so they compose directly in fluent trees.
-
-### Raw Access
-
-| Function | Returns |
-|----------|---------|
-| `Assets()` | `fs.FS` rooted at `dist/` |
-| `Version` | `"2.0.8"` (constant) |
-
-### Bundled Extensions
-
-`ws`, `sse`, `preload`, `response-targets`, `head-support` — matching the extension helpers in this package.
-
 ## Architecture
 
 `htmx.New(element)` wraps a Fluent `node.Element` and returns `*Wrapper`. The Wrapper delegates these `node.Element` methods to the underlying element: `Render`, `RenderBuilder`, `RenderOpen`, `RenderClose`, `Nodes`, `SetAttribute`. All other methods on `*Wrapper` are the HTMX-specific methods listed in this document.
@@ -71,6 +41,23 @@ if htmx.HxRequest(r) { /* partial */ } else { /* full page */ }
 htmx.HxPushURL(w, "/new-url")
 ```
 
+## Swap Strategies (constants.go)
+
+`SwapStrategy` is a typed string used by `HxSwap()`, `HxReswap()`, and `DefaultSwapStyle()`.
+
+| Constant | Value |
+|----------|-------|
+| `SwapInnerHTML` | `"innerHTML"` |
+| `SwapOuterHTML` | `"outerHTML"` |
+| `SwapBeforeBegin` | `"beforebegin"` |
+| `SwapAfterBegin` | `"afterbegin"` |
+| `SwapBeforeEnd` | `"beforeend"` |
+| `SwapAfterEnd` | `"afterend"` |
+| `SwapDelete` | `"delete"` |
+| `SwapNone` | `"none"` |
+
+`CustomSwap(strategy string) SwapStrategy` — creates a strategy with modifiers, e.g. `CustomSwap("innerHTML swap:1s")`.
+
 ## Complete Client Method Reference
 
 This is the **exhaustive** list of methods on `*Wrapper`. If a method is not listed here, it does not exist.
@@ -89,7 +76,7 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 
 | Method | Attribute |
 |--------|-----------|
-| `HxSwap(strategy string)` | `hx-swap` |
+| `HxSwap(strategy SwapStrategy)` | `hx-swap` |
 | `HxTarget(selector string)` | `hx-target` |
 | `HxSwapOOB(value string)` | `hx-swap-oob` |
 | `HxSelect(selector string)` | `hx-select` |
@@ -234,13 +221,26 @@ trigger := htmx.NewTrigger(w)
 trigger.AddTrigger(eventName, detailMap)           // immediate
 trigger.AddTriggerAfterSwap(eventName, detailMap)  // after swap
 trigger.AddTriggerAfterSettle(eventName, detailMap) // after settle
-trigger.Write(content, statusCode)
+trigger.Write(node, statusCode)
 ```
 
 ### Simple Response
 
 ```go
-htmx.Response(w, "<div>content</div>", http.StatusOK)
+htmx.Response(w, div.Text("content"), http.StatusOK)
+```
+
+### SSE Server Writer (sse_server.go)
+
+| Function | Returns |
+|----------|---------|
+| `NewSSE(w http.ResponseWriter)` | `(*SSEWriter, error)` — initialises SSE stream, sets headers |
+| `(*SSEWriter).Send(event, data string)` | `error` — sends a named event, handles multi-line data, flushes |
+
+```go
+sse, err := htmx.NewSSE(w)
+sse.Send("message", "<div>Updated</div>")
+sse.Send("done", "")  // triggers sse-close on client
 ```
 
 ## Configuration (config.go)
@@ -249,7 +249,7 @@ htmx.Response(w, "<div>content</div>", http.StatusOK)
 
 ```go
 cfg := htmx.Config().
-    DefaultSwapStyle("outerHTML").
+    DefaultSwapStyle(htmx.SwapOuterHTML).
     Timeout(5000).
     GlobalViewTransitions(true)
 
@@ -263,7 +263,7 @@ jsonStr, err := cfg.ToJSON()
 
 | Method | Default | Description |
 |--------|---------|-------------|
-| `DefaultSwapStyle(string)` | `"innerHTML"` | Default swap method |
+| `DefaultSwapStyle(SwapStrategy)` | `SwapInnerHTML` | Default swap method |
 | `DefaultSwapDelay(int)` | `0` | Delay in ms before swap |
 | `DefaultSettleDelay(int)` | `20` | Delay in ms before settle |
 | `Timeout(int)` | `0` | Request timeout in ms |
@@ -308,7 +308,7 @@ jsonStr, err := cfg.ToJSON()
 ### Form Submission
 
 ```go
-htmx.New(form).HxPost("/save").HxTarget("#content").HxSwap("innerHTML")
+htmx.New(form).HxPost("/save").HxTarget("#content").HxSwap(htmx.SwapInnerHTML)
 
 func HandleSave(w http.ResponseWriter, r *http.Request) {
     if htmx.Handle(r, func() {
@@ -322,8 +322,8 @@ func HandleSave(w http.ResponseWriter, r *http.Request) {
 ### List Updates
 
 ```go
-htmx.New(form).HxPost("/add").HxTarget("#list").HxSwap("afterbegin")
-// Swap strategies: innerHTML, outerHTML, beforebegin, afterbegin, beforeend, afterend
+htmx.New(form).HxPost("/add").HxTarget("#list").HxSwap(htmx.SwapAfterBegin)
+// Swap strategies: SwapInnerHTML, SwapOuterHTML, SwapBeforeBegin, SwapAfterBegin, SwapBeforeEnd, SwapAfterEnd
 ```
 
 ### Inline Event Handler (Locality of Behaviour)
@@ -337,7 +337,7 @@ htmx.New(div).HxOn("after-swap", handler)
 ### Delete with Confirmation
 
 ```go
-htmx.New(btn).HxDelete("/items/"+id).HxConfirm("Sure?").HxTarget("closest .item").HxSwap("outerHTML")
+htmx.New(btn).HxDelete("/items/"+id).HxConfirm("Sure?").HxTarget("closest .item").HxSwap(htmx.SwapOuterHTML)
 ```
 
 ## Profile-Guided Optimization (PGO)

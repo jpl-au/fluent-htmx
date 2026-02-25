@@ -43,10 +43,10 @@ func (c *config) RefreshOnHistoryMiss(refresh bool) *config {
 }
 
 // DefaultSwapStyle sets the swap strategy used when no hx-swap attribute is specified.
-// Defaults to "innerHTML". Set to "outerHTML" for component-based architectures where
+// Defaults to "innerHTML". Set to SwapOuterHTML for component-based architectures where
 // the response replaces the entire target element.
-func (c *config) DefaultSwapStyle(style string) *config {
-	c.settings["defaultSwapStyle"] = style
+func (c *config) DefaultSwapStyle(style SwapStrategy) *config {
+	c.settings["defaultSwapStyle"] = string(style)
 
 	return c
 }

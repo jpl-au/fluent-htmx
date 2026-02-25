@@ -5,6 +5,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/jpl-au/fluent/html5/div"
+	"github.com/jpl-au/fluent/text"
 )
 
 func TestServerHxRequest(t *testing.T) {
@@ -187,7 +190,7 @@ func TestHxRetargetHeader(t *testing.T) {
 
 func TestHxReswapHeader(t *testing.T) {
 	w := httptest.NewRecorder()
-	HxReswap(w, "outerHTML")
+	HxReswap(w, SwapOuterHTML)
 
 	if got := w.Header().Get("HX-Reswap"); got != "outerHTML" {
 		t.Errorf("HX-Reswap header = %q, want %q", got, "outerHTML")
@@ -209,7 +212,7 @@ func TestTriggerBuilderSimpleEvents(t *testing.T) {
 
 	err := tb.AddTrigger("showMessage", nil).
 		AddTrigger("refreshList", nil).
-		Write("<div>ok</div>", http.StatusOK)
+		Write(text.RawText("<div>ok</div>"), http.StatusOK)
 
 	if err != nil {
 		t.Fatalf("Write() returned error: %v", err)
@@ -229,12 +232,28 @@ func TestTriggerBuilderSimpleEvents(t *testing.T) {
 	}
 }
 
+func TestTriggerBuilderWriteNode(t *testing.T) {
+	w := httptest.NewRecorder()
+	tb := NewTrigger(w)
+
+	n := div.New().Text("fluent node")
+	err := tb.AddTrigger("event", nil).Write(n, http.StatusOK)
+
+	if err != nil {
+		t.Fatalf("Write() returned error: %v", err)
+	}
+
+	if !strings.Contains(w.Body.String(), "fluent node") {
+		t.Errorf("body = %q, want it to contain %q", w.Body.String(), "fluent node")
+	}
+}
+
 func TestTriggerBuilderDetailedEvents(t *testing.T) {
 	w := httptest.NewRecorder()
 	tb := NewTrigger(w)
 
 	err := tb.AddTrigger("showMessage", map[string]string{"level": "info", "message": "Saved"}).
-		Write("", http.StatusOK)
+		Write(text.RawText(""), http.StatusOK)
 
 	if err != nil {
 		t.Fatalf("Write() returned error: %v", err)
@@ -259,7 +278,7 @@ func TestTriggerBuilderAfterSwap(t *testing.T) {
 	tb := NewTrigger(w)
 
 	err := tb.AddTriggerAfterSwap("scrollTo", nil).
-		Write("", http.StatusOK)
+		Write(text.RawText(""), http.StatusOK)
 
 	if err != nil {
 		t.Fatalf("Write() returned error: %v", err)
@@ -275,7 +294,7 @@ func TestTriggerBuilderAfterSettle(t *testing.T) {
 	tb := NewTrigger(w)
 
 	err := tb.AddTriggerAfterSettle("initTooltips", nil).
-		Write("", http.StatusOK)
+		Write(text.RawText(""), http.StatusOK)
 
 	if err != nil {
 		t.Fatalf("Write() returned error: %v", err)
@@ -290,7 +309,7 @@ func TestTriggerBuilderSetsContentType(t *testing.T) {
 	w := httptest.NewRecorder()
 	tb := NewTrigger(w)
 
-	err := tb.AddTrigger("event", nil).Write("<p>test</p>", http.StatusOK)
+	err := tb.AddTrigger("event", nil).Write(text.RawText("<p>test</p>"), http.StatusOK)
 	if err != nil {
 		t.Fatalf("Write() returned error: %v", err)
 	}
@@ -302,7 +321,10 @@ func TestTriggerBuilderSetsContentType(t *testing.T) {
 
 func TestResponseHelper(t *testing.T) {
 	w := httptest.NewRecorder()
-	Response(w, "<p>Hello</p>", http.StatusOK)
+	err := Response(w, text.RawText("<p>Hello</p>"), http.StatusOK)
+	if err != nil {
+		t.Fatalf("Response() returned error: %v", err)
+	}
 
 	if ct := w.Header().Get("Content-Type"); ct != "text/html; charset=utf-8" {
 		t.Errorf("Content-Type = %q, want %q", ct, "text/html; charset=utf-8")
@@ -314,5 +336,18 @@ func TestResponseHelper(t *testing.T) {
 
 	if w.Body.String() != "<p>Hello</p>" {
 		t.Errorf("body = %q, want %q", w.Body.String(), "<p>Hello</p>")
+	}
+}
+
+func TestResponseNodeHelper(t *testing.T) {
+	w := httptest.NewRecorder()
+	n := div.New().Text("hello")
+	err := Response(w, n, http.StatusOK)
+	if err != nil {
+		t.Fatalf("Response() returned error: %v", err)
+	}
+
+	if !strings.Contains(w.Body.String(), "hello") {
+		t.Errorf("body = %q, want it to contain %q", w.Body.String(), "hello")
 	}
 }
