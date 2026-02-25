@@ -170,7 +170,7 @@ func NewTrigger(w http.ResponseWriter) *TriggerBuilder {
 }
 
 // addTrigger is an internal helper to reduce repetition in the public trigger methods.
-func (tb *TriggerBuilder) addTrigger(header string, eventName string, details interface{}) *TriggerBuilder {
+func (tb *TriggerBuilder) addTrigger(header string, eventName string, details any) *TriggerBuilder {
 	switch header {
 	case HXTriggerHeader:
 		tb.triggers = append(tb.triggers, triggerEvent{Name: eventName, Details: details})
@@ -200,7 +200,7 @@ func (tb *TriggerBuilder) Write(content string, code int) error {
 
 		var simpleEvents []string
 
-		detailedEvents := make(map[string]interface{})
+		detailedEvents := make(map[string]any)
 		hasDetailedEvent := false
 
 		for _, event := range events {
@@ -248,21 +248,21 @@ func (tb *TriggerBuilder) Write(content string, code int) error {
 // AddTrigger queues an event to fire immediately when the response is received.
 // If details is non-nil, it is included as a JSON object alongside the event name.
 // Call Write to finalise and send.
-func (tb *TriggerBuilder) AddTrigger(eventName string, details interface{}) *TriggerBuilder {
+func (tb *TriggerBuilder) AddTrigger(eventName string, details any) *TriggerBuilder {
 	return tb.addTrigger(HXTriggerHeader, eventName, details)
 }
 
 // AddTriggerAfterSettle queues an event to fire after the DOM has settled.
 // Settling occurs after new content attributes have been applied — use this
 // for operations that depend on final attribute values.
-func (tb *TriggerBuilder) AddTriggerAfterSettle(eventName string, details interface{}) *TriggerBuilder {
+func (tb *TriggerBuilder) AddTriggerAfterSettle(eventName string, details any) *TriggerBuilder {
 	return tb.addTrigger(HXTriggerAfterSettleHeader, eventName, details)
 }
 
 // AddTriggerAfterSwap queues an event to fire after the content swap completes.
 // Use this for operations that depend on the new content being in the DOM
 // (e.g. initialising JavaScript components on swapped elements).
-func (tb *TriggerBuilder) AddTriggerAfterSwap(eventName string, details interface{}) *TriggerBuilder {
+func (tb *TriggerBuilder) AddTriggerAfterSwap(eventName string, details any) *TriggerBuilder {
 	return tb.addTrigger(HXTriggerAfterSwapHeader, eventName, details)
 }
 

@@ -55,9 +55,9 @@ func New(n node.Element) *Wrapper {
 
 // node.Element delegation — all calls pass through to the wrapped element.
 
-func (h *Wrapper) Render(w ...io.Writer) []byte        { return h.element.Render(w...) }
-func (h *Wrapper) RenderBuilder(buf *bytes.Buffer)      { h.element.RenderBuilder(buf) }
-func (h *Wrapper) Nodes() []node.Node                   { return h.element.Nodes() }
+func (h *Wrapper) Render(w ...io.Writer) []byte          { return h.element.Render(w...) }
+func (h *Wrapper) RenderBuilder(buf *bytes.Buffer)       { h.element.RenderBuilder(buf) }
+func (h *Wrapper) Nodes() []node.Node                    { return h.element.Nodes() }
 func (h *Wrapper) SetAttribute(key string, value string) { h.element.SetAttribute(key, value) }
-func (h *Wrapper) RenderOpen(buf *bytes.Buffer)         { h.element.RenderOpen(buf) }
-func (h *Wrapper) RenderClose(buf *bytes.Buffer)        { h.element.RenderClose(buf) }
+func (h *Wrapper) RenderOpen(buf *bytes.Buffer)          { h.element.RenderOpen(buf) }
+func (h *Wrapper) RenderClose(buf *bytes.Buffer)         { h.element.RenderClose(buf) }

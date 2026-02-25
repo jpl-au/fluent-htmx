@@ -8,14 +8,14 @@ const (
 
 // HTMX request headers sent by the client.
 const (
-	HXRequestHeader         = "HX-Request"
-	HXBoostedHeader         = "HX-Boosted"
-	HXCurrentURLHeader      = "HX-Current-URL"
+	HXRequestHeader               = "HX-Request"
+	HXBoostedHeader               = "HX-Boosted"
+	HXCurrentURLHeader            = "HX-Current-URL"
 	HXHistoryRestoreRequestHeader = "HX-History-Restore-Request"
-	HXPromptHeader          = "HX-Prompt"
-	HXTargetHeader          = "HX-Target"
-	HXTriggerNameHeader     = "HX-Trigger-Name"
-	HXTriggerHeader         = "HX-Trigger"
+	HXPromptHeader                = "HX-Prompt"
+	HXTargetHeader                = "HX-Target"
+	HXTriggerNameHeader           = "HX-Trigger-Name"
+	HXTriggerHeader               = "HX-Trigger"
 )
 
 // HTMX response headers sent by the server.

@@ -14,6 +14,36 @@ The following methods **have never existed** in this package. Do not use them:
 
 If you need `SetData()` or `SetAria()`, call them on the Fluent element **before** wrapping it with `htmx.New()`.
 
+## Embedded Assets (embed.go, handler.go, script.go)
+
+The package embeds htmx 2.0.8 and supported extensions via `go:embed`. No CDN or manual downloads required.
+
+### Serving
+
+```go
+mux.Handle("/_htmx/", htmx.Handler("/_htmx/"))
+```
+
+### Script Helpers
+
+| Function | Output |
+|----------|--------|
+| `Script(prefix string)` | `<script src="{prefix}htmx.min.js"></script>` |
+| `ExtScript(prefix, name string)` | `<script src="{prefix}ext/{name}.js"></script>` |
+
+Both return `node.Node` so they compose directly in fluent trees.
+
+### Raw Access
+
+| Function | Returns |
+|----------|---------|
+| `Assets()` | `fs.FS` rooted at `dist/` |
+| `Version` | `"2.0.8"` (constant) |
+
+### Bundled Extensions
+
+`ws`, `sse`, `preload`, `response-targets`, `head-support` — matching the extension helpers in this package.
+
 ## Architecture
 
 `htmx.New(element)` wraps a Fluent `node.Element` and returns `*Wrapper`. The Wrapper delegates these `node.Element` methods to the underlying element: `Render`, `RenderBuilder`, `RenderOpen`, `RenderClose`, `Nodes`, `SetAttribute`. All other methods on `*Wrapper` are the HTMX-specific methods listed in this document.

@@ -14,6 +14,56 @@ go get github.com/jpl-au/fluent-htmx
 
 ---
 
+# Embedded Assets
+
+Fluent HTMX embeds htmx 2.0.8 and its supported extensions so you have zero external JS dependencies. No CDN links, no manual downloads — `go get` is all you need.
+
+## Serving the Assets
+
+Mount the handler at a path prefix in your router:
+
+```go
+mux.Handle("/_htmx/", htmx.Handler("/_htmx/"))
+```
+
+The handler sets `Cache-Control: public, max-age=31536000, immutable` since the files are versioned by the Go module.
+
+## Script Tag Helpers
+
+Use the fluent node helpers to add `<script>` tags to your page head:
+
+```go
+import (
+    "github.com/jpl-au/fluent/html5/head"
+    "github.com/jpl-au/fluent-htmx"
+)
+
+head.New(
+    htmx.Script("/_htmx/"),                     // htmx core
+    htmx.ExtScript("/_htmx/", "ws"),            // WebSocket extension
+    htmx.ExtScript("/_htmx/", "sse"),           // SSE extension
+    htmx.ExtScript("/_htmx/", "preload"),       // Preload extension
+    htmx.ExtScript("/_htmx/", "response-targets"), // Response targets extension
+    htmx.ExtScript("/_htmx/", "head-support"),  // Head support extension
+)
+```
+
+## Custom Serving
+
+If you need to serve the files through your own middleware or at a different path, use the raw filesystem:
+
+```go
+fs := htmx.Assets() // fs.FS rooted at the dist/ directory
+```
+
+## Version
+
+```go
+htmx.Version // "2.0.8"
+```
+
+---
+
 # Client-Side Attributes
 
 Wrap any Fluent element with `htmx.New()` to add HTMX attributes. `New()` accepts `node.Element` — any HTML element created via Fluent's element packages (e.g. `div.New()`, `button.Text()`). Text nodes, function components, and conditionals are not elements and cannot be wrapped:

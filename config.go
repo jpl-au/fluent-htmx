@@ -8,13 +8,13 @@ import (
 // config represents HTMX configuration options.
 // Use htmx.Config() to create a new builder and chain methods to set options.
 type config struct {
-	settings map[string]interface{}
+	settings map[string]any
 }
 
 // Config creates a new HTMX configuration builder.
 func Config() *config {
 	return &config{
-		settings: make(map[string]interface{}),
+		settings: make(map[string]any),
 	}
 }
 
@@ -282,7 +282,7 @@ func (c *config) ScrollIntoViewOnBoost(scroll bool) *config {
 // TriggerSpecsCache provides a pre-populated cache of parsed trigger specifications.
 // Expects a map[string]interface{} matching HTMX's internal trigger spec format.
 // This is an advanced option for optimising trigger parsing on pages with many elements.
-func (c *config) TriggerSpecsCache(cache interface{}) *config {
+func (c *config) TriggerSpecsCache(cache any) *config {
 	c.settings["triggerSpecsCache"] = cache
 
 	return c
@@ -291,7 +291,7 @@ func (c *config) TriggerSpecsCache(cache interface{}) *config {
 // ResponseHandling configures how HTMX processes responses based on HTTP status codes.
 // Expects a []map[string]interface{} where each entry specifies a code pattern, swap behaviour,
 // and error flag. See the HTMX documentation for the default response handling rules.
-func (c *config) ResponseHandling(handling interface{}) *config {
+func (c *config) ResponseHandling(handling any) *config {
 	c.settings["responseHandling"] = handling
 
 	return c
