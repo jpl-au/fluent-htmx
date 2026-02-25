@@ -3,6 +3,8 @@ package htmx
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/jpl-au/fluent-htmx/swap"
 )
 
 // config represents HTMX configuration options.
@@ -43,9 +45,9 @@ func (c *config) RefreshOnHistoryMiss(refresh bool) *config {
 }
 
 // DefaultSwapStyle sets the swap strategy used when no hx-swap attribute is specified.
-// Defaults to "innerHTML". Set to SwapOuterHTML for component-based architectures where
+// Defaults to "innerHTML". Set to swap.OuterHTML for component-based architectures where
 // the response replaces the entire target element.
-func (c *config) DefaultSwapStyle(style SwapStrategy) *config {
+func (c *config) DefaultSwapStyle(style swap.Strategy) *config {
 	c.settings["defaultSwapStyle"] = string(style)
 
 	return c

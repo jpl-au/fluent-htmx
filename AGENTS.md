@@ -41,22 +41,55 @@ if htmx.HxRequest(r) { /* partial */ } else { /* full page */ }
 htmx.HxPushURL(w, "/new-url")
 ```
 
-## Swap Strategies (constants.go)
+## Sub-Packages
 
-`SwapStrategy` is a typed string used by `HxSwap()`, `HxReswap()`, and `DefaultSwapStyle()`.
+Swap strategies, events, and CSS classes live in their own packages for cleaner call sites.
+
+### Swap Strategies (`swap` package)
+
+`swap.Strategy` is a typed string used by `HxSwap()`, `HxReswap()`, and `DefaultSwapStyle()`.
 
 | Constant | Value |
 |----------|-------|
-| `SwapInnerHTML` | `"innerHTML"` |
-| `SwapOuterHTML` | `"outerHTML"` |
-| `SwapBeforeBegin` | `"beforebegin"` |
-| `SwapAfterBegin` | `"afterbegin"` |
-| `SwapBeforeEnd` | `"beforeend"` |
-| `SwapAfterEnd` | `"afterend"` |
-| `SwapDelete` | `"delete"` |
-| `SwapNone` | `"none"` |
+| `swap.InnerHTML` | `"innerHTML"` |
+| `swap.OuterHTML` | `"outerHTML"` |
+| `swap.BeforeBegin` | `"beforebegin"` |
+| `swap.AfterBegin` | `"afterbegin"` |
+| `swap.BeforeEnd` | `"beforeend"` |
+| `swap.AfterEnd` | `"afterend"` |
+| `swap.Delete` | `"delete"` |
+| `swap.None` | `"none"` |
 
-`CustomSwap(strategy string) SwapStrategy` — creates a strategy with modifiers, e.g. `CustomSwap("innerHTML swap:1s")`.
+`swap.Custom(strategy string) swap.Strategy` — creates a strategy with modifiers, e.g. `swap.Custom("innerHTML swap:1s")`.
+
+### Events (`event` package)
+
+Event constants for use with `HxOn()`. Examples:
+
+| Constant | Value |
+|----------|-------|
+| `event.AfterSwap` | `"afterSwap"` |
+| `event.BeforeRequest` | `"beforeRequest"` |
+| `event.BeforeSwap` | `"beforeSwap"` |
+| `event.ConfigRequest` | `"configRequest"` |
+| `event.Load` | `"load"` |
+| `event.ResponseError` | `"responseError"` |
+| `event.HistoryCacheHit` | `"historyCacheHit"` |
+| `event.SSEOpen` | `"sseOpen"` |
+| `event.ValidationFailed` | `"validation:failed"` |
+| `event.XHRProgress` | `"xhr:progress"` |
+
+See `event/event.go` for the full list.
+
+### CSS Classes (`class` package)
+
+| Constant | Value |
+|----------|-------|
+| `class.Added` | `"htmx-added"` |
+| `class.Indicator` | `"htmx-indicator"` |
+| `class.Request` | `"htmx-request"` |
+| `class.Settling` | `"htmx-settling"` |
+| `class.Swapping` | `"htmx-swapping"` |
 
 ## Complete Client Method Reference
 
@@ -76,7 +109,7 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 
 | Method | Attribute |
 |--------|-----------|
-| `HxSwap(strategy SwapStrategy)` | `hx-swap` |
+| `HxSwap(strategy swap.Strategy)` | `hx-swap` |
 | `HxTarget(selector string)` | `hx-target` |
 | `HxSwapOOB(value string)` | `hx-swap-oob` |
 | `HxSelect(selector string)` | `hx-select` |
@@ -89,7 +122,7 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 | `HxTrigger(events string)` | `hx-trigger` |
 | `HxOn(event string, handler string)` | `hx-on::event` |
 
-Use constants from `constants.go` for event names: `EventAfterSwap`, `EventBeforeSwap`, `EventAfterSettle`, `EventBeforeRequest`, `EventAfterRequest`, `EventConfigRequest`, etc.
+Use constants from the `event` package for event names: `event.AfterSwap`, `event.BeforeSwap`, `event.AfterSettle`, `event.BeforeRequest`, `event.AfterRequest`, `event.ConfigRequest`, etc.
 
 ### Boolean Attributes (client.go)
 
@@ -249,7 +282,7 @@ sse.Send("done", "")  // triggers sse-close on client
 
 ```go
 cfg := htmx.Config().
-    DefaultSwapStyle(htmx.SwapOuterHTML).
+    DefaultSwapStyle(swap.OuterHTML).
     Timeout(5000).
     GlobalViewTransitions(true)
 
@@ -263,7 +296,7 @@ jsonStr, err := cfg.ToJSON()
 
 | Method | Default | Description |
 |--------|---------|-------------|
-| `DefaultSwapStyle(SwapStrategy)` | `SwapInnerHTML` | Default swap method |
+| `DefaultSwapStyle(swap.Strategy)` | `swap.InnerHTML` | Default swap method |
 | `DefaultSwapDelay(int)` | `0` | Delay in ms before swap |
 | `DefaultSettleDelay(int)` | `20` | Delay in ms before settle |
 | `Timeout(int)` | `0` | Request timeout in ms |
@@ -308,7 +341,7 @@ jsonStr, err := cfg.ToJSON()
 ### Form Submission
 
 ```go
-htmx.New(form).HxPost("/save").HxTarget("#content").HxSwap(htmx.SwapInnerHTML)
+htmx.New(form).HxPost("/save").HxTarget("#content").HxSwap(swap.InnerHTML)
 
 func HandleSave(w http.ResponseWriter, r *http.Request) {
     if htmx.Handle(r, func() {
@@ -322,8 +355,8 @@ func HandleSave(w http.ResponseWriter, r *http.Request) {
 ### List Updates
 
 ```go
-htmx.New(form).HxPost("/add").HxTarget("#list").HxSwap(htmx.SwapAfterBegin)
-// Swap strategies: SwapInnerHTML, SwapOuterHTML, SwapBeforeBegin, SwapAfterBegin, SwapBeforeEnd, SwapAfterEnd
+htmx.New(form).HxPost("/add").HxTarget("#list").HxSwap(swap.AfterBegin)
+// Swap strategies: swap.InnerHTML, swap.OuterHTML, swap.BeforeBegin, swap.AfterBegin, swap.BeforeEnd, swap.AfterEnd
 ```
 
 ### Inline Event Handler (Locality of Behaviour)
@@ -337,7 +370,7 @@ htmx.New(div).HxOn("after-swap", handler)
 ### Delete with Confirmation
 
 ```go
-htmx.New(btn).HxDelete("/items/"+id).HxConfirm("Sure?").HxTarget("closest .item").HxSwap(htmx.SwapOuterHTML)
+htmx.New(btn).HxDelete("/items/"+id).HxConfirm("Sure?").HxTarget("closest .item").HxSwap(swap.OuterHTML)
 ```
 
 ## Profile-Guided Optimization (PGO)

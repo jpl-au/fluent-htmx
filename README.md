@@ -27,6 +27,7 @@ import (
     "github.com/jpl-au/fluent/html5/button"
     "github.com/jpl-au/fluent/html5/div"
     "github.com/jpl-au/fluent-htmx"
+    "github.com/jpl-au/fluent-htmx/swap"
 )
 
 func main() {
@@ -36,7 +37,7 @@ func main() {
         htmx.New(btn).
             HxGet("/api/items").
             HxTarget("#results").
-            HxSwap(htmx.SwapBeforeEnd)
+            HxSwap(swap.BeforeEnd)
 
         div.New(btn).ID("results").Render(w)
     })
@@ -55,7 +56,7 @@ htmx.New(elem).
     HxPatch("/api/patch").
     HxDelete("/api/remove").
     HxTarget("#result").
-    HxSwap(htmx.SwapInnerHTML).
+    HxSwap(swap.InnerHTML).
     HxTrigger("click").
     HxIndicator("#spinner").
     HxConfirm("Are you sure?")
@@ -91,7 +92,7 @@ htmx.New(elem).
 | `HxExt(extensions)` | `hx-ext` | Enable extensions |
 | `HxOn(event, handler)` | `hx-on::event` | Inline event handlers |
 
-`HxSwap` accepts a `SwapStrategy` type. Use the predefined constants `SwapInnerHTML`, `SwapOuterHTML`, `SwapBeforeBegin`, `SwapAfterBegin`, `SwapBeforeEnd`, `SwapAfterEnd`, `SwapDelete`, `SwapNone`, or `CustomSwap("innerHTML swap:1s")` for strategies with modifiers.
+`HxSwap` accepts a `swap.Strategy` type. Use the predefined constants `swap.InnerHTML`, `swap.OuterHTML`, `swap.BeforeBegin`, `swap.AfterBegin`, `swap.BeforeEnd`, `swap.AfterEnd`, `swap.Delete`, `swap.None`, or `swap.Custom("innerHTML swap:1s")` for strategies with modifiers.
 
 ## Extensions
 
@@ -200,7 +201,7 @@ htmx.HxRefresh(w)
 
 // Swap control
 htmx.HxRetarget(w, "#other-element")
-htmx.HxReswap(w, htmx.SwapOuterHTML)
+htmx.HxReswap(w, swap.OuterHTML)
 htmx.HxReselect(w, ".content")
 ```
 
@@ -286,7 +287,43 @@ metaTag, err := cfg.ToMetaTag()
 
 # Constants
 
-The package exports constants for HTMX headers, CSS classes, and events.
+The package exports constants for HTMX headers. Swap strategies, CSS classes, and events are in their own sub-packages for cleaner call sites.
+
+## Swap Strategies (`swap` package)
+
+```go
+swap.InnerHTML    // "innerHTML"
+swap.OuterHTML    // "outerHTML"
+swap.BeforeBegin  // "beforebegin"
+swap.AfterBegin   // "afterbegin"
+swap.BeforeEnd    // "beforeend"
+swap.AfterEnd     // "afterend"
+swap.Delete       // "delete"
+swap.None         // "none"
+swap.Custom("innerHTML swap:1s")
+```
+
+## Events (`event` package)
+
+```go
+event.AfterSwap       // "afterSwap"
+event.BeforeRequest   // "beforeRequest"
+event.BeforeSwap      // "beforeSwap"
+event.ConfigRequest   // "configRequest"
+event.Load            // "load"
+event.ResponseError   // "responseError"
+// ... and many more
+```
+
+## CSS Classes (`class` package)
+
+```go
+class.Request    // "htmx-request"
+class.Indicator  // "htmx-indicator"
+class.Added      // "htmx-added"
+class.Settling   // "htmx-settling"
+class.Swapping   // "htmx-swapping"
+```
 
 ## Request Headers
 
@@ -311,28 +348,6 @@ htmx.HXReplaceURLHeader      // "HX-Replace-Url"
 htmx.HXReswapHeader          // "HX-Reswap"
 htmx.HXRetargetHeader        // "HX-Retarget"
 htmx.HXReselectHeader        // "HX-Reselect"
-```
-
-## CSS Classes
-
-```go
-htmx.HXClassRequest    // "htmx-request"
-htmx.HXClassIndicator  // "htmx-indicator"
-htmx.HXClassAdded      // "htmx-added"
-htmx.HXClassSettling   // "htmx-settling"
-htmx.HXClassSwapping   // "htmx-swapping"
-```
-
-## Events (for HxOn)
-
-```go
-htmx.EventAfterSwap       // "afterSwap"
-htmx.EventBeforeRequest   // "beforeRequest"
-htmx.EventBeforeSwap      // "beforeSwap"
-htmx.EventConfigRequest   // "configRequest"
-htmx.EventLoad            // "load"
-htmx.EventResponseError   // "responseError"
-// ... and many more
 ```
 
 ---

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/jpl-au/fluent-htmx/swap"
 	"github.com/jpl-au/fluent/node"
 )
 
@@ -149,7 +150,7 @@ func HxRetarget(w http.ResponseWriter, selector string) {
 // HxReswap overrides the client-side hx-swap strategy from the server.
 // For example, the server can change "innerHTML" to "outerHTML" to replace the
 // entire target element when returning an error state.
-func HxReswap(w http.ResponseWriter, strategy SwapStrategy) {
+func HxReswap(w http.ResponseWriter, strategy swap.Strategy) {
 	w.Header().Set(HXReswapHeader, string(strategy))
 }
 

@@ -3,6 +3,8 @@
 
 package htmx
 
+import "github.com/jpl-au/fluent-htmx/swap"
+
 // HxGet issues an AJAX GET request to the given URL and swaps the response into the DOM.
 func (h *Wrapper) HxGet(url string) *Wrapper {
 	h.element.SetAttribute("hx-get", url)
@@ -39,8 +41,8 @@ func (h *Wrapper) HxDelete(url string) *Wrapper {
 }
 
 // HxSwap controls how the response content is swapped into the DOM.
-// Use the predefined Swap* constants or CustomSwap() for strategies with modifiers.
-func (h *Wrapper) HxSwap(strategy SwapStrategy) *Wrapper {
+// Use the predefined swap package constants or swap.Custom() for strategies with modifiers.
+func (h *Wrapper) HxSwap(strategy swap.Strategy) *Wrapper {
 	h.element.SetAttribute("hx-swap", string(strategy))
 
 	return h

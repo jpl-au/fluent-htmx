@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jpl-au/fluent-htmx/swap"
 	"github.com/jpl-au/fluent/html5/div"
 )
 
@@ -38,7 +39,7 @@ func TestMethodChaining(t *testing.T) {
 	w := New(d)
 
 	// All methods must return *Wrapper to support chaining.
-	result := w.HxGet("/api/users").HxTarget("#result").HxSwap(SwapInnerHTML).HxTrigger("click")
+	result := w.HxGet("/api/users").HxTarget("#result").HxSwap(swap.InnerHTML).HxTrigger("click")
 
 	if result == nil {
 		t.Fatal("method chaining returned nil")
@@ -116,7 +117,7 @@ func TestHxSwap(t *testing.T) {
 	d := div.New()
 	w := New(d)
 
-	w.HxSwap(SwapOuterHTML)
+	w.HxSwap(swap.OuterHTML)
 
 	html := string(d.Render())
 	if !strings.Contains(html, `hx-swap="outerHTML"`) {
@@ -128,11 +129,11 @@ func TestHxSwapCustom(t *testing.T) {
 	d := div.New()
 	w := New(d)
 
-	w.HxSwap(CustomSwap("innerHTML swap:1s"))
+	w.HxSwap(swap.Custom("innerHTML swap:1s"))
 
 	html := string(d.Render())
 	if !strings.Contains(html, `hx-swap="innerHTML swap:1s"`) {
-		t.Errorf("HxSwap() with CustomSwap did not set attribute correctly, got: %s", html)
+		t.Errorf("HxSwap() with swap.Custom did not set attribute correctly, got: %s", html)
 	}
 }
 

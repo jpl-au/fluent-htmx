@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jpl-au/fluent-htmx/swap"
 	"github.com/jpl-au/fluent/html5/div"
 	"github.com/jpl-au/fluent/text"
 )
@@ -190,7 +191,7 @@ func TestHxRetargetHeader(t *testing.T) {
 
 func TestHxReswapHeader(t *testing.T) {
 	w := httptest.NewRecorder()
-	HxReswap(w, SwapOuterHTML)
+	HxReswap(w, swap.OuterHTML)
 
 	if got := w.Header().Get("HX-Reswap"); got != "outerHTML" {
 		t.Errorf("HX-Reswap header = %q, want %q", got, "outerHTML")
