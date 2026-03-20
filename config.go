@@ -119,7 +119,7 @@ func (c *config) SwappingClass(class string) *config {
 
 // AllowEval controls whether HTMX can use eval() for features like hx-vars and hx-on handlers.
 // Defaults to true. Disable to comply with Content Security Policy (CSP) restrictions
-// that forbid eval — note that hx-on:: (inline event handlers) work without eval.
+// that forbid eval - note that hx-on:: (inline event handlers) work without eval.
 func (c *config) AllowEval(allow bool) *config {
 	c.settings["allowEval"] = allow
 

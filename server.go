@@ -57,7 +57,7 @@ func Handle(r *http.Request, fn func()) bool {
 }
 
 // HxBoosted returns true if the request came from an element with hx-boost enabled.
-// Boosted requests behave like standard navigation but use AJAX — the server may want
+// Boosted requests behave like standard navigation but use AJAX - the server may want
 // to return a full page layout for boosted requests but a partial for regular HTMX requests.
 func HxBoosted(r *http.Request) bool {
 	return r.Header.Get(HXBoostedHeader) == boolTrue
@@ -82,7 +82,7 @@ func HxPrompt(r *http.Request) string {
 }
 
 // HxTarget returns the ID of the element the response will be swapped into.
-// The server can use this to vary the response — e.g. return different content
+// The server can use this to vary the response - e.g. return different content
 // depending on which part of the page is being updated.
 func HxTarget(r *http.Request) string {
 	return r.Header.Get(HXTargetHeader)
@@ -102,7 +102,7 @@ func HxTrigger(r *http.Request) string {
 }
 
 // HxRedirect performs a client-side redirect. For HTMX requests, it sets the HX-Redirect
-// response header with a 200 status — HTMX processes redirects client-side so the response
+// response header with a 200 status - HTMX processes redirects client-side so the response
 // must be 200 for the header to be read. For standard requests, it uses a standard HTTP redirect.
 func HxRedirect(w http.ResponseWriter, r *http.Request, url string, code int) {
 	if HxRequest(r) {
@@ -134,7 +134,7 @@ func HxReplaceURL(w http.ResponseWriter, url string) {
 }
 
 // HxRefresh triggers a full page refresh on the client.
-// Use sparingly — typically after operations that affect global state
+// Use sparingly - typically after operations that affect global state
 // where a partial swap would leave the page inconsistent.
 func HxRefresh(w http.ResponseWriter) {
 	w.Header().Set(HXRefreshHeader, boolTrue)
@@ -260,7 +260,7 @@ func (tb *TriggerBuilder) AddTrigger(eventName string, details any) *TriggerBuil
 }
 
 // AddTriggerAfterSettle queues an event to fire after the DOM has settled.
-// Settling occurs after new content attributes have been applied — use this
+// Settling occurs after new content attributes have been applied - use this
 // for operations that depend on final attribute values.
 func (tb *TriggerBuilder) AddTriggerAfterSettle(eventName string, details any) *TriggerBuilder {
 	return tb.addTrigger(HXTriggerAfterSettleHeader, eventName, details)

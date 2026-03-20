@@ -4,13 +4,13 @@
 
 The following methods **have never existed** in this package. Do not use them:
 
-- `Attr()` — does not exist. Use the typed `Hx*()` methods listed below.
-- `SetAttr()` — does not exist.
-- `Attribute()` — does not exist.
-- `Data()` — does not exist. Fluent's `node.Element` has `SetData()`, but it is not available on the HTMX `*Wrapper`.
-- `Aria()` — does not exist. Fluent's `node.Element` has `SetAria()`, but it is not available on the HTMX `*Wrapper`.
-- `SetData()` — does not exist on `*Wrapper`. It exists on the underlying `node.Element`.
-- `SetAria()` — does not exist on `*Wrapper`. It exists on the underlying `node.Element`.
+- `Attr()` - does not exist. Use the typed `Hx*()` methods listed below.
+- `SetAttr()` - does not exist.
+- `Attribute()` - does not exist.
+- `Data()` - does not exist. Fluent's `node.Element` has `SetData()`, but it is not available on the HTMX `*Wrapper`.
+- `Aria()` - does not exist. Fluent's `node.Element` has `SetAria()`, but it is not available on the HTMX `*Wrapper`.
+- `SetData()` - does not exist on `*Wrapper`. It exists on the underlying `node.Element`.
+- `SetAria()` - does not exist on `*Wrapper`. It exists on the underlying `node.Element`.
 
 If you need `SetData()` or `SetAria()`, call them on the Fluent element **before** wrapping it with `htmx.New()`.
 
@@ -18,19 +18,19 @@ If you need `SetData()` or `SetAria()`, call them on the Fluent element **before
 
 `htmx.New(element)` wraps a Fluent `node.Element` and returns `*Wrapper`. The Wrapper delegates these `node.Element` methods to the underlying element: `Render`, `RenderBuilder`, `RenderOpen`, `RenderClose`, `Nodes`, `SetAttribute`. All other methods on `*Wrapper` are the HTMX-specific methods listed in this document.
 
-`SetAttribute(key, value)` is exposed on Wrapper as a pass-through to the underlying element. **Never call `SetAttribute` directly for HTMX attributes** — always use the typed `Hx*()` methods instead.
+`SetAttribute(key, value)` is exposed on Wrapper as a pass-through to the underlying element. **Never call `SetAttribute` directly for HTMX attributes** - always use the typed `Hx*()` methods instead.
 
 ## Constraints
 
-- **NEVER use `.SetAttribute()` for HTMX attributes** — always use `htmx.New(element).HxX()` methods
-- **NEVER use `r.Header.Get("HX-Request")`** — use `htmx.HxRequest(r)`
-- **NEVER use `w.Header().Set("HX-*")`** — use `htmx.HxX(w, ...)` functions
-- **NEVER add global JavaScript event listeners for HTMX** — use `HxOn()` for locality of behaviour
+- **NEVER use `.SetAttribute()` for HTMX attributes** - always use `htmx.New(element).HxX()` methods
+- **NEVER use `r.Header.Get("HX-Request")`** - use `htmx.HxRequest(r)`
+- **NEVER use `w.Header().Set("HX-*")`** - use `htmx.HxX(w, ...)` functions
+- **NEVER add global JavaScript event listeners for HTMX** - use `HxOn()` for locality of behaviour
 - If a method is not listed in this document, it does not exist
 
 ## Pattern
 
-`htmx.New()` accepts `node.Element` — any HTML element created via Fluent's element packages. Text nodes, function components, and conditionals are `node.Node` only and cannot be wrapped.
+`htmx.New()` accepts `node.Element` - any HTML element created via Fluent's element packages. Text nodes, function components, and conditionals are `node.Node` only and cannot be wrapped.
 
 ```go
 // Client-side: wrap element, chain HTMX methods
@@ -60,7 +60,7 @@ Swap strategies, events, and CSS classes live in their own packages for cleaner 
 | `swap.Delete` | `"delete"` |
 | `swap.None` | `"none"` |
 
-`swap.Custom(strategy string) swap.Strategy` — creates a strategy with modifiers, e.g. `swap.Custom("innerHTML swap:1s")`.
+`swap.Custom(strategy string) swap.Strategy` - creates a strategy with modifiers, e.g. `swap.Custom("innerHTML swap:1s")`.
 
 ### Events (`event` package)
 
@@ -219,8 +219,8 @@ Use constants from the `event` package for event names: `event.AfterSwap`, `even
 
 | Function | Returns |
 |----------|---------|
-| `HxRequest(r *http.Request)` | `bool` — true if HTMX request |
-| `Handle(r *http.Request, fn func())` | `bool` — executes fn if HTMX request, returns true |
+| `HxRequest(r *http.Request)` | `bool` - true if HTMX request |
+| `Handle(r *http.Request, fn func())` | `bool` - executes fn if HTMX request, returns true |
 
 ### Read Request Headers
 
@@ -267,8 +267,8 @@ htmx.Response(w, div.Text("content"), http.StatusOK)
 
 | Function | Returns |
 |----------|---------|
-| `NewSSE(w http.ResponseWriter)` | `(*SSEWriter, error)` — initialises SSE stream, sets headers |
-| `(*SSEWriter).Send(event, data string)` | `error` — sends a named event, handles multi-line data, flushes |
+| `NewSSE(w http.ResponseWriter)` | `(*SSEWriter, error)` - initialises SSE stream, sets headers |
+| `(*SSEWriter).Send(event, data string)` | `error` - sends a named event, handles multi-line data, flushes |
 
 ```go
 sse, err := htmx.NewSSE(w)
@@ -306,7 +306,7 @@ jsonStr, err := cfg.ToJSON()
 | `HistoryRestoreAsHxRequest(bool)` | `true` | Send HX-Request on history restore |
 | `GlobalViewTransitions(bool)` | `false` | Use View Transitions API |
 | `ScrollBehaviour(string)` | `"instant"` | Scroll animation style |
-| `ScrollBehavior(string)` | — | American spelling alias |
+| `ScrollBehavior(string)` | - | American spelling alias |
 | `DefaultFocusScroll(bool)` | `false` | Scroll focused element into view |
 | `ScrollIntoViewOnBoost(bool)` | `true` | Scroll on boosted navigation |
 | `IndicatorClass(string)` | `"htmx-indicator"` | Loading indicator CSS class |
@@ -331,10 +331,10 @@ jsonStr, err := cfg.ToJSON()
 | `MethodsThatUseURLParams([]string)` | `["get"]` | Methods using URL query params |
 | `ReportValidityOfForms(bool)` | `false` | Call reportValidity() before submit |
 | `AllowNestedOobSwaps(bool)` | `true` | Process nested OOB swaps |
-| `TriggerSpecsCache(interface{})` | — | Pre-populated trigger spec cache |
-| `ResponseHandling(interface{})` | — | Custom response handling rules |
-| `ToMetaTag()` | — | Returns `(string, error)` |
-| `ToJSON()` | — | Returns `(string, error)` |
+| `TriggerSpecsCache(interface{})` | - | Pre-populated trigger spec cache |
+| `ResponseHandling(interface{})` | - | Custom response handling rules |
+| `ToMetaTag()` | - | Returns `(string, error)` |
+| `ToJSON()` | - | Returns `(string, error)` |
 
 ## Usage Patterns
 
@@ -375,4 +375,4 @@ htmx.New(btn).HxDelete("/items/"+id).HxConfirm("Sure?").HxTarget("closest .item"
 
 ## Profile-Guided Optimization (PGO)
 
-Applications using Fluent HTMX benefit from [PGO](https://go.dev/doc/pgo) (Go 1.21+). Collect a CPU profile from production, place it as `default.pgo` in the main package, and `go build` applies it automatically. Expect 10-20% speed improvements with no code changes. Allocations are unaffected — PGO improves inlining decisions only.
+Applications using Fluent HTMX benefit from [PGO](https://go.dev/doc/pgo) (Go 1.21+). Collect a CPU profile from production, place it as `default.pgo` in the main package, and `go build` applies it automatically. Expect 10-20% speed improvements with no code changes. Allocations are unaffected - PGO improves inlining decisions only.

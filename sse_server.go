@@ -33,7 +33,7 @@ func NewSSE(w http.ResponseWriter) (*SSEWriter, error) {
 }
 
 // Send writes a named SSE event with the given data payload. Multi-line data is
-// handled automatically per the SSE specification — each line is sent with its
+// handled automatically per the SSE specification - each line is sent with its
 // own data: prefix. The response is flushed after each event to ensure immediate
 // delivery to the client.
 //

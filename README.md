@@ -16,7 +16,7 @@ go get github.com/jpl-au/fluent-htmx
 
 # Client-Side Attributes
 
-Wrap any Fluent element with `htmx.New()` to add HTMX attributes. `New()` accepts `node.Element` — any HTML element created via Fluent's element packages (e.g. `div.New()`, `button.Text()`). Text nodes, function components, and conditionals are not elements and cannot be wrapped:
+Wrap any Fluent element with `htmx.New()` to add HTMX attributes. `New()` accepts `node.Element` - any HTML element created via Fluent's element packages (e.g. `div.New()`, `button.Text()`). Text nodes, function components, and conditionals are not elements and cannot be wrapped:
 
 ```go
 package main
@@ -361,7 +361,7 @@ Applications using Fluent HTMX benefit from [Profile-Guided Optimization](https:
    curl -o default.pgo http://localhost:8080/debug/pprof/profile?seconds=30
    ```
 2. Place `default.pgo` in your main package directory
-3. `go build` — PGO is applied automatically
+3. `go build` - PGO is applied automatically
 
 Allocations are unaffected; PGO improves speed only.
 

@@ -54,7 +54,7 @@ func New(n node.Element) *Wrapper {
 	return &Wrapper{element: n}
 }
 
-// node.Element delegation — all calls pass through to the wrapped element.
+// node.Element delegation - all calls pass through to the wrapped element.
 
 func (h *Wrapper) Render(w ...io.Writer) []byte          { return h.element.Render(w...) }
 func (h *Wrapper) RenderBuilder(buf *bytes.Buffer)       { h.element.RenderBuilder(buf) }
