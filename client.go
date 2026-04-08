@@ -3,7 +3,10 @@
 
 package htmx
 
-import "github.com/jpl-au/fluent-htmx/swap"
+import (
+	"github.com/jpl-au/fluent-htmx/swap"
+	"github.com/jpl-au/fluent-htmx/sync"
+)
 
 // HxGet issues an AJAX GET request to the given URL and swaps the response into the DOM.
 func (h *Wrapper) HxGet(url string) *Wrapper {
@@ -185,9 +188,13 @@ func (h *Wrapper) HxInclude(selector string) *Wrapper {
 
 // HxSync coordinates requests between this element and another element matched by the selector.
 // Prevents race conditions when multiple elements can trigger overlapping requests.
-// Strategies: "drop", "abort", "replace", "queue first", "queue last", "queue all".
-func (h *Wrapper) HxSync(strategy string) *Wrapper {
-	h.element.SetAttribute("hx-sync", strategy)
+// Use constants from the sync package for type safety:
+//
+//	htmx.New(el).HxSync(sync.Drop)
+//	htmx.New(el).HxSync(sync.QueueLast)
+//	htmx.New(el).HxSync(sync.Custom("closest form:abort"))
+func (h *Wrapper) HxSync(strategy sync.Strategy) *Wrapper {
+	h.element.SetAttribute("hx-sync", string(strategy))
 
 	return h
 }
@@ -292,8 +299,9 @@ func (h *Wrapper) HxRequest(config string) *Wrapper {
 	return h
 }
 
-// HxVars is deprecated in favour of HxVals. It evaluates JavaScript expressions
-// to compute request values, which requires allowEval to be enabled.
+// Deprecated: Use [Wrapper.HxVals] instead. HxVars evaluates JavaScript
+// expressions to compute request values, which requires allowEval to be
+// enabled. HTMX deprecated hx-vars in favour of hx-vals.
 func (h *Wrapper) HxVars(variables string) *Wrapper {
 	h.element.SetAttribute("hx-vars", variables)
 

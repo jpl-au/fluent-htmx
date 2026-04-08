@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/jpl-au/fluent-htmx/swap"
+	"github.com/jpl-au/fluent-htmx/sync"
 	"github.com/jpl-au/fluent/html5/div"
 )
 
@@ -345,14 +346,30 @@ func TestHxInclude(t *testing.T) {
 }
 
 func TestHxSync(t *testing.T) {
-	d := div.New()
-	w := New(d)
+	tests := []struct {
+		name     string
+		strategy sync.Strategy
+		want     string
+	}{
+		{"Drop", sync.Drop, `hx-sync="drop"`},
+		{"Abort", sync.Abort, `hx-sync="abort"`},
+		{"Replace", sync.Replace, `hx-sync="replace"`},
+		{"QueueFirst", sync.QueueFirst, `hx-sync="queue first"`},
+		{"QueueLast", sync.QueueLast, `hx-sync="queue last"`},
+		{"QueueAll", sync.QueueAll, `hx-sync="queue all"`},
+		{"Custom", sync.Custom("closest form:abort"), `hx-sync="closest form:abort"`},
+	}
 
-	w.HxSync("closest form:abort")
-
-	html := string(d.Render())
-	if !strings.Contains(html, `hx-sync="closest form:abort"`) {
-		t.Errorf("HxSync() did not set attribute correctly, got: %s", html)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := div.New()
+			w := New(d)
+			w.HxSync(tt.strategy)
+			html := string(d.Render())
+			if !strings.Contains(html, tt.want) {
+				t.Errorf("HxSync(%s) want %s in %s", tt.name, tt.want, html)
+			}
+		})
 	}
 }
 

@@ -85,7 +85,7 @@ htmx.New(elem).
 | `HxConfirm(message)` | `hx-confirm` | Confirmation prompt |
 | `HxPrompt(message)` | `hx-prompt` | User input prompt |
 | `HxValidate(bool)` | `hx-validate` | Enable validation |
-| `HxSync(strategy)` | `hx-sync` | Request synchronisation |
+| `HxSync(sync.Strategy)` | `hx-sync` | Request synchronisation |
 | `HxPreserve(bool)` | `hx-preserve` | Preserve element during swap |
 | `HxDisable()` | `hx-disable` | Disable HTMX processing |
 | `HxDisabledElt(selector)` | `hx-disabled-elt` | Disable elements during request |
@@ -93,6 +93,8 @@ htmx.New(elem).
 | `HxOn(event, handler)` | `hx-on::event` | Inline event handlers |
 
 `HxSwap` accepts a `swap.Strategy` type. Use the predefined constants `swap.InnerHTML`, `swap.OuterHTML`, `swap.BeforeBegin`, `swap.AfterBegin`, `swap.BeforeEnd`, `swap.AfterEnd`, `swap.Delete`, `swap.None`, or `swap.Custom("innerHTML swap:1s")` for strategies with modifiers.
+
+`HxSync` accepts a `sync.Strategy` type. Use the predefined constants `sync.Drop`, `sync.Abort`, `sync.Replace`, `sync.QueueFirst`, `sync.QueueLast`, `sync.QueueAll`, or `sync.Custom("closest form:abort")` for element-scoped strategies.
 
 ## Extensions
 

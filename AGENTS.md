@@ -62,6 +62,21 @@ Swap strategies, events, and CSS classes live in their own packages for cleaner 
 
 `swap.Custom(strategy string) swap.Strategy` - creates a strategy with modifiers, e.g. `swap.Custom("innerHTML swap:1s")`.
 
+### Sync Strategies (`sync` package)
+
+`sync.Strategy` is a typed string used by `HxSync()`.
+
+| Constant | Value |
+|----------|-------|
+| `sync.Drop` | `"drop"` |
+| `sync.Abort` | `"abort"` |
+| `sync.Replace` | `"replace"` |
+| `sync.QueueFirst` | `"queue first"` |
+| `sync.QueueLast` | `"queue last"` |
+| `sync.QueueAll` | `"queue all"` |
+
+`sync.Custom(strategy string) sync.Strategy` - creates a strategy with element selectors, e.g. `sync.Custom("closest form:abort")`.
+
 ### Events (`event` package)
 
 Event constants for use with `HxOn()`. Examples:
@@ -156,7 +171,7 @@ Use constants from the `event` package for event names: `event.AfterSwap`, `even
 | Method | Attribute |
 |--------|-----------|
 | `HxIndicator(selector string)` | `hx-indicator` |
-| `HxSync(strategy string)` | `hx-sync` |
+| `HxSync(strategy sync.Strategy)` | `hx-sync` |
 | `HxDisabledElt(selector string)` | `hx-disabled-elt` |
 | `HxDisable()` | `hx-disable` |
 | `HxHistoryElt()` | `hx-history-elt` |
