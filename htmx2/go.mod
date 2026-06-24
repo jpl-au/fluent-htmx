@@ -1,4 +1,4 @@
-module github.com/jpl-au/fluent-htmx
+module github.com/jpl-au/fluent-htmx/htmx2
 
 go 1.25.0
 

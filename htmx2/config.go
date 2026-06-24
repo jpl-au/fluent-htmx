@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jpl-au/fluent-htmx/swap"
+	"github.com/jpl-au/fluent-htmx/htmx2/swap"
 )
 
 // config represents HTMX configuration options.

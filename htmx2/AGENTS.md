@@ -1,4 +1,4 @@
-# HTMX Extension Guide for LLMs
+# HTMX Extension Guide for Agents
 
 ## Methods That Do Not Exist
 
@@ -110,7 +110,7 @@ See `event/event.go` for the full list.
 
 This is the **exhaustive** list of methods on `*Wrapper`. If a method is not listed here, it does not exist.
 
-### HTTP Verbs (client.go)
+### HTTP Verbs (htmx.go)
 
 | Method | Attribute |
 |--------|-----------|
@@ -120,7 +120,7 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 | `HxPatch(url string)` | `hx-patch` |
 | `HxDelete(url string)` | `hx-delete` |
 
-### Swap & Targeting (client.go)
+### Swap & Targeting (htmx.go)
 
 | Method | Attribute |
 |--------|-----------|
@@ -130,7 +130,7 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 | `HxSelect(selector string)` | `hx-select` |
 | `HxSelectOOB(selector string)` | `hx-select-oob` |
 
-### Triggers & Events (client.go)
+### Triggers & Events (htmx.go)
 
 | Method | Attribute |
 |--------|-----------|
@@ -139,7 +139,7 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 
 Use constants from the `event` package for event names: `event.AfterSwap`, `event.BeforeSwap`, `event.AfterSettle`, `event.BeforeRequest`, `event.AfterRequest`, `event.ConfigRequest`, etc.
 
-### Boolean Attributes (client.go)
+### Boolean Attributes (htmx.go)
 
 | Method | Attribute |
 |--------|-----------|
@@ -147,14 +147,14 @@ Use constants from the `event` package for event names: `event.AfterSwap`, `even
 | `HxPreserve(preserve bool)` | `hx-preserve` |
 | `HxValidate(validate bool)` | `hx-validate` |
 
-### URL Management (client.go)
+### URL Management (htmx.go)
 
 | Method | Attribute |
 |--------|-----------|
 | `HxPushURL(value string)` | `hx-push-url` |
 | `HxReplaceURL(url string)` | `hx-replace-url` |
 
-### Form & Request Parameters (client.go)
+### Form & Request Parameters (htmx.go)
 
 | Method | Attribute |
 |--------|-----------|
@@ -166,7 +166,7 @@ Use constants from the `event` package for event names: `event.AfterSwap`, `even
 | `HxConfirm(message string)` | `hx-confirm` |
 | `HxPrompt(message string)` | `hx-prompt` |
 
-### Control Flow (client.go)
+### Control Flow (htmx.go)
 
 | Method | Attribute |
 |--------|-----------|
@@ -176,7 +176,7 @@ Use constants from the `event` package for event names: `event.AfterSwap`, `even
 | `HxDisable()` | `hx-disable` |
 | `HxHistoryElt()` | `hx-history-elt` |
 
-### Inheritance & History (client.go)
+### Inheritance & History (htmx.go)
 
 | Method | Attribute |
 |--------|-----------|
@@ -185,6 +185,19 @@ Use constants from the `event` package for event names: `event.AfterSwap`, `even
 | `HxDisinherit(attributes string)` | `hx-disinherit` |
 | `HxInherit(attributes string)` | `hx-inherit` |
 | `HxRequest(config string)` | `hx-request` |
+
+To use an extension, load its script in the page `<head>` (each is its own `htmx-ext-<name>` package) and switch it on with `hx-ext`. `hx-ext` is inherited, so call `HxExt` once on the `<body>` and every element below can use the extension's methods without repeating `HxExt`. The tables below list each extension's setters.
+
+```go
+// Scripts in <head>: core htmx, then each htmx-ext-<name> package.
+// Enable the extensions once on the body (inherited by all descendants):
+htmx.New(body).HxExt("ws,sse")
+
+// Then use the methods on any element below; no HxExt needed:
+htmx.New(chat).WsConnect("/ws/chat")
+htmx.New(form).WsSend()
+htmx.New(feed).SSEConnect("/events").SSESwap("message")
+```
 
 ### WebSocket Extension (ws.go)
 
@@ -222,7 +235,7 @@ Use constants from the `event` package for event names: `event.AfterSwap`, `even
 |--------|-----------|
 | `HxHead(mode string)` | `hx-head` |
 
-### Deprecated (client.go)
+### Deprecated (htmx.go)
 
 | Method | Attribute | Note |
 |--------|-----------|------|
@@ -289,6 +302,34 @@ htmx.Response(w, div.Text("content"), http.StatusOK)
 sse, err := htmx.NewSSE(w)
 sse.Send("message", "<div>Updated</div>")
 sse.Send("done", "")  // triggers sse-close on client
+```
+
+### Header Constants
+
+Prefer the reader and writer functions above. These exported constants hold the raw header names, for cases where no helper exists:
+
+```go
+// Request headers (sent by the client)
+htmx.HXRequestHeader               // "HX-Request"
+htmx.HXBoostedHeader               // "HX-Boosted"
+htmx.HXCurrentURLHeader            // "HX-Current-URL"
+htmx.HXHistoryRestoreRequestHeader // "HX-History-Restore-Request"
+htmx.HXPromptHeader                // "HX-Prompt"
+htmx.HXTargetHeader                // "HX-Target"
+htmx.HXTriggerNameHeader           // "HX-Trigger-Name"
+htmx.HXTriggerHeader               // "HX-Trigger"
+
+// Response headers (set by the server)
+htmx.HXLocationHeader           // "HX-Location"
+htmx.HXPushURLHeader            // "HX-Push-Url"
+htmx.HXRedirectHeader           // "HX-Redirect"
+htmx.HXRefreshHeader            // "HX-Refresh"
+htmx.HXReplaceURLHeader         // "HX-Replace-Url"
+htmx.HXReswapHeader             // "HX-Reswap"
+htmx.HXRetargetHeader           // "HX-Retarget"
+htmx.HXReselectHeader           // "HX-Reselect"
+htmx.HXTriggerAfterSettleHeader // "HX-Trigger-After-Settle"
+htmx.HXTriggerAfterSwapHeader   // "HX-Trigger-After-Swap"
 ```
 
 ## Configuration (config.go)
@@ -388,6 +429,60 @@ htmx.New(div).HxOn("after-swap", handler)
 htmx.New(btn).HxDelete("/items/"+id).HxConfirm("Sure?").HxTarget("closest .item").HxSwap(swap.OuterHTML)
 ```
 
-## Profile-Guided Optimization (PGO)
+### Active search (type-ahead)
 
-Applications using Fluent HTMX benefit from [PGO](https://go.dev/doc/pgo) (Go 1.21+). Collect a CPU profile from production, place it as `default.pgo` in the main package, and `go build` applies it automatically. Expect 10-20% speed improvements with no code changes. Allocations are unaffected - PGO improves inlining decisions only.
+```go
+htmx.New(input).
+    HxGet("/search").
+    HxTrigger("keyup changed delay:300ms").
+    HxTarget("#results").
+    HxSwap(swap.InnerHTML)
+```
+
+### Load more (append to a list)
+
+```go
+htmx.New(btn).HxGet("/items?page=2").HxTarget("#list").HxSwap(swap.BeforeEnd)
+```
+
+### Polling
+
+```go
+htmx.New(div).HxGet("/status").HxTrigger("every 2s").HxSwap(swap.InnerHTML)
+```
+
+### Lazy load on reveal
+
+```go
+htmx.New(div).HxGet("/widget").HxTrigger("load").HxSwap(swap.OuterHTML)
+```
+
+### Loading indicator
+
+```go
+htmx.New(btn).HxPost("/save").HxTarget("#out").HxIndicator("#spinner")
+```
+
+### Boosted navigation
+
+```go
+// Links and forms inside become AJAX requests, and the URL is pushed to history.
+htmx.New(nav).HxBoost(true)
+```
+
+### Server: trigger a client event after the response
+
+```go
+func HandleSave(w http.ResponseWriter, r *http.Request) {
+    t := htmx.NewTrigger(w)
+    t.AddTrigger("itemSaved", map[string]any{"id": id})
+    t.Write(SavedPartial(), http.StatusOK)
+}
+```
+
+### Server: client-side redirect
+
+```go
+// For an htmx request this sets HX-Redirect; otherwise it is a normal HTTP redirect.
+htmx.HxRedirect(w, r, "/login", http.StatusSeeOther)
+```

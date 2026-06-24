@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jpl-au/fluent-htmx/swap"
-	"github.com/jpl-au/fluent-htmx/sync"
+	"github.com/jpl-au/fluent-htmx/htmx2/swap"
+	"github.com/jpl-au/fluent-htmx/htmx2/sync"
 	"github.com/jpl-au/fluent/html5/div"
 )
 

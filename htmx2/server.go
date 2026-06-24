@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/jpl-au/fluent-htmx/swap"
+	"github.com/jpl-au/fluent-htmx/htmx2/swap"
 	"github.com/jpl-au/fluent/node"
 )
 

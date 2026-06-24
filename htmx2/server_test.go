@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jpl-au/fluent-htmx/swap"
+	"github.com/jpl-au/fluent-htmx/htmx2/swap"
 	"github.com/jpl-au/fluent/html5/div"
 	"github.com/jpl-au/fluent/text"
 )
