@@ -26,7 +26,7 @@ func TestElementInterfaceDelegation(t *testing.T) {
 	d := div.New().ID("test")
 	w := New(d)
 
-	html := string(w.Render())
+	html := string(w.RenderBytes())
 	if !strings.Contains(html, `id="test"`) {
 		t.Errorf("Render() delegation failed, got: %s", html)
 	}
@@ -46,7 +46,7 @@ func TestMethodChaining(t *testing.T) {
 		t.Fatal("method chaining returned nil")
 	}
 
-	html := string(d.Render())
+	html := string(d.RenderBytes())
 	for _, attr := range []string{`hx-get="/api/users"`, `hx-target="#result"`, `hx-swap="innerHTML"`, `hx-trigger="click"`} {
 		if !strings.Contains(html, attr) {
 			t.Errorf("chained call missing %s, got: %s", attr, html)
@@ -114,7 +114,7 @@ func TestClientSetters(t *testing.T) {
 			w := New(d)
 			tc.set(w)
 
-			html := string(d.Render())
+			html := string(d.RenderBytes())
 			if !strings.Contains(html, tc.want) {
 				t.Errorf("%s: want %q in %s", tc.name, tc.want, html)
 			}
@@ -126,7 +126,7 @@ func TestHxVals(t *testing.T) {
 	d := div.New()
 	New(d).HxVals(`{"key":"value"}`)
 
-	html := string(d.Render())
+	html := string(d.RenderBytes())
 	if !strings.Contains(html, "hx-vals") || !strings.Contains(html, "key") {
 		t.Errorf("HxVals() not rendered correctly, got: %s", html)
 	}
@@ -136,7 +136,7 @@ func TestHxHeaders(t *testing.T) {
 	d := div.New()
 	New(d).HxHeaders(`{"X-Custom":"value"}`)
 
-	html := string(d.Render())
+	html := string(d.RenderBytes())
 	if !strings.Contains(html, "hx-headers") || !strings.Contains(html, "X-Custom") {
 		t.Errorf("HxHeaders() not rendered correctly, got: %s", html)
 	}
@@ -146,7 +146,7 @@ func TestHxInclude(t *testing.T) {
 	d := div.New()
 	New(d).HxInclude("closest form")
 
-	html := string(d.Render())
+	html := string(d.RenderBytes())
 	if !strings.Contains(html, "hx-include") {
 		t.Errorf("HxInclude() did not set attribute, got: %s", html)
 	}
@@ -168,7 +168,7 @@ func TestHxSync(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := div.New()
 			New(d).HxSync(tt.strategy)
-			html := string(d.Render())
+			html := string(d.RenderBytes())
 			if !strings.Contains(html, tt.want) {
 				t.Errorf("HxSync(%s) want %s in %s", tt.name, tt.want, html)
 			}
@@ -180,7 +180,7 @@ func TestHxOn(t *testing.T) {
 	d := div.New()
 	New(d).HxOn("click", "alert('hi')")
 
-	html := string(d.Render())
+	html := string(d.RenderBytes())
 	// hx-on uses a single colon: hx-on:EVENT.
 	if !strings.Contains(html, "hx-on:click") {
 		t.Errorf("HxOn() did not set hx-on:click, got: %s", html)
@@ -206,7 +206,7 @@ func TestInheritModifier(t *testing.T) {
 			w := New(d)
 			tc.set(w)
 
-			html := string(d.Render())
+			html := string(d.RenderBytes())
 			if !strings.Contains(html, tc.want) {
 				t.Errorf("%s: want %q in %s", tc.name, tc.want, html)
 			}
