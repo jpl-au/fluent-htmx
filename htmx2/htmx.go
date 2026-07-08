@@ -64,6 +64,10 @@ func (h *Wrapper) RenderBytes() []byte                   { return h.element.Rend
 func (h *Wrapper) RenderBuilder(buf *bytes.Buffer)       { h.element.RenderBuilder(buf) }
 func (h *Wrapper) Nodes() []node.Node                    { return h.element.Nodes() }
 func (h *Wrapper) SetAttribute(key string, value string) { h.element.SetAttribute(key, value) }
+
+// SetAttributeRaw sets a custom attribute without escaping, delegating to the
+// wrapped element (node.Element's raw hatch).
+func (h *Wrapper) SetAttributeRaw(key string, value string) { h.element.SetAttributeRaw(key, value) }
 func (h *Wrapper) RenderOpen(buf *bytes.Buffer)          { h.element.RenderOpen(buf) }
 func (h *Wrapper) RenderClose(buf *bytes.Buffer)         { h.element.RenderClose(buf) }
 
