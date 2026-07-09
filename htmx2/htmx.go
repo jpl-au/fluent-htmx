@@ -68,8 +68,8 @@ func (h *Wrapper) SetAttribute(key string, value string) { h.element.SetAttribut
 // SetAttributeRaw sets a custom attribute without escaping, delegating to the
 // wrapped element (node.Element's raw hatch).
 func (h *Wrapper) SetAttributeRaw(key string, value string) { h.element.SetAttributeRaw(key, value) }
-func (h *Wrapper) RenderOpen(buf *bytes.Buffer)          { h.element.RenderOpen(buf) }
-func (h *Wrapper) RenderClose(buf *bytes.Buffer)         { h.element.RenderClose(buf) }
+func (h *Wrapper) RenderOpen(buf *bytes.Buffer)             { h.element.RenderOpen(buf) }
+func (h *Wrapper) RenderClose(buf *bytes.Buffer)            { h.element.RenderClose(buf) }
 
 // HxGet issues an AJAX GET request to the given URL and swaps the response into the DOM.
 func (h *Wrapper) HxGet(url string) *Wrapper {

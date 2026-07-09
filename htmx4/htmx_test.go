@@ -198,6 +198,8 @@ func TestInheritModifier(t *testing.T) {
 		{"InheritedAppend", func(w *Wrapper) { w.HxInclude("#extra", InheritedAppend) }, `hx-include:inherited:append="#extra"`},
 		{"Bool setter", func(w *Wrapper) { w.HxBoost(true, Inherited) }, `hx-boost:inherited="true"`},
 		{"Typed setter", func(w *Wrapper) { w.HxSwap(swap.OuterHTML, Inherited) }, `hx-swap:inherited="outerHTML"`},
+		{"Append", func(w *Wrapper) { w.HxInclude("#extra", Append) }, `hx-include:append="#extra"`},
+		{"Status with modifier", func(w *Wrapper) { w.HxStatus("422", "swap:none", Inherited) }, `hx-status:422:inherited="swap:none"`},
 		{"No modifier is unchanged", func(w *Wrapper) { w.HxTarget("#main") }, `hx-target="#main"`},
 	}
 
@@ -212,5 +214,23 @@ func TestInheritModifier(t *testing.T) {
 				t.Errorf("%s: want %q in %s", tc.name, tc.want, html)
 			}
 		})
+	}
+}
+
+// The wrapper delegates both custom-attribute paths to the wrapped element:
+// SetAttribute escapes its value at set-time, SetAttributeRaw stores it verbatim.
+func TestSetAttributeRaw(t *testing.T) {
+	d := div.New()
+	w := New(d)
+
+	w.SetAttribute("data-escaped", `"><script>`)
+	w.SetAttributeRaw("data-raw", "a&amp;b")
+
+	html := string(d.RenderBytes())
+	if !strings.Contains(html, `data-escaped="&#34;&gt;&lt;script&gt;"`) {
+		t.Errorf("SetAttribute did not escape, got: %s", html)
+	}
+	if !strings.Contains(html, `data-raw="a&amp;b"`) {
+		t.Errorf("SetAttributeRaw did not pass the value through verbatim, got: %s", html)
 	}
 }

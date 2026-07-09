@@ -688,3 +688,21 @@ func TestHxHead(t *testing.T) {
 		t.Errorf("HxHead() did not set attribute correctly, got: %s", html)
 	}
 }
+
+// The wrapper delegates both custom-attribute paths to the wrapped element:
+// SetAttribute escapes its value at set-time, SetAttributeRaw stores it verbatim.
+func TestSetAttributeRaw(t *testing.T) {
+	d := div.New()
+	w := New(d)
+
+	w.SetAttribute("data-escaped", `"><script>`)
+	w.SetAttributeRaw("data-raw", "a&amp;b")
+
+	html := string(d.RenderBytes())
+	if !strings.Contains(html, `data-escaped="&#34;&gt;&lt;script&gt;"`) {
+		t.Errorf("SetAttribute did not escape, got: %s", html)
+	}
+	if !strings.Contains(html, `data-raw="a&amp;b"`) {
+		t.Errorf("SetAttributeRaw did not pass the value through verbatim, got: %s", html)
+	}
+}
