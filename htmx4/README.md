@@ -47,6 +47,10 @@ func main() {
 
 The package is imported from `.../htmx4` but is named `htmx`, so call sites read `htmx.New(...)`.
 
+## Escaping and safety
+
+Attribute values written by the `Hx*()` setters (and by the delegated `SetAttribute`) are HTML-escaped automatically, like any other Fluent attribute, so a value from user input cannot break out of its attribute. For a value you have already sanitised and trust verbatim, `SetAttributeRaw(key, value)` on the wrapped element stores it without escaping.
+
 ## Core Attributes
 
 ```go
