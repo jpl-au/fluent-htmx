@@ -16,7 +16,7 @@ If you need `SetData()` or `SetAria()`, call them on the Fluent element **before
 
 ## Architecture
 
-`htmx.New(element)` wraps a Fluent `node.Element` and returns `*Wrapper`. The Wrapper delegates these `node.Element` methods to the underlying element: `Render`, `RenderBuilder`, `RenderOpen`, `RenderClose`, `Nodes`, `SetAttribute`. All other methods on `*Wrapper` are the HTMX-specific methods listed in this document.
+`htmx.New(element)` wraps a Fluent `node.Element` and returns `*Wrapper`. The Wrapper delegates these `node.Element` methods to the underlying element: `Render`, `WriteTo`, `RenderBytes`, `RenderBuilder`, `RenderOpen`, `RenderClose`, `Nodes`, `SetAttribute`, `SetAttributeRaw`. (`SetAttributeRaw` is the trusted-value raw hatch, mirroring `RawText`: it stores the value verbatim, whereas `SetAttribute` escapes it.) All other methods on `*Wrapper` are the HTMX-specific methods listed in this document.
 
 `SetAttribute(key, value)` is exposed on Wrapper as a pass-through to the underlying element. **Never call `SetAttribute` directly for HTMX attributes** - always use the typed `Hx*()` methods instead.
 

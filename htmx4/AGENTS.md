@@ -23,7 +23,7 @@ If a method is not listed in this document, it does not exist.
 
 ## Architecture
 
-`htmx.New(element)` wraps a Fluent `node.Element` and returns `*Wrapper`. The Wrapper delegates these `node.Element` methods to the underlying element: `Render`, `RenderBuilder`, `RenderOpen`, `RenderClose`, `Nodes`, `SetAttribute`. All other methods on `*Wrapper` are the HTMX-specific methods listed in this document.
+`htmx.New(element)` wraps a Fluent `node.Element` and returns `*Wrapper`. The Wrapper delegates these `node.Element` methods to the underlying element: `Render`, `WriteTo`, `RenderBytes`, `RenderBuilder`, `RenderOpen`, `RenderClose`, `Nodes`, `SetAttribute`, `SetAttributeRaw`. (`SetAttributeRaw` is the trusted-value raw hatch, mirroring `RawText`: it stores the value verbatim, whereas `SetAttribute` escapes it.) All other methods on `*Wrapper` are the HTMX-specific methods listed in this document.
 
 The package is imported from `github.com/jpl-au/fluent-htmx/htmx4` but is named `htmx`; call sites read `htmx.New(...)`.
 
