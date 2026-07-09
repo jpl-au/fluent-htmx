@@ -12,7 +12,6 @@ The following methods **do not exist** in this package. Do not use them - use th
 - `HxParams()`, `HxDisinherit()`, `HxInherit()` - do not exist. For inheritance, use the `htmx.Inherited` / `htmx.InheritedAppend` modifier.
 - `HxDisabledElt()` - does not exist. Use `HxDisable(selector)`.
 - `HxDisable()` with no arguments - does not exist. `HxDisable` takes a selector (disable form elements during a request). To skip HTMX processing, use `HxIgnore()`.
-- `HxPrompt()` (client setter) - does not exist (hx-prompt was removed from htmx 4 core). The server reader `HxPrompt(r)` exists but returns empty unless a prompt extension sets the HX-Prompt header.
 - `HxTargetError()`, `HxTargetCode()`, `HxTargetCodePattern()` - do not exist. Use `HxStatus(code, spec)`.
 - `SSESwap()` - does not exist. Unnamed SSE messages swap automatically; handle named events with `HxTrigger`.
 - `PreloadImages()` - does not exist. `Preload(trigger)` is the only preload method.
@@ -213,8 +212,9 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 | `HxPtag(tag string)` | `hx-ptag` (separate script dist/ext/hx-ptag.js) |
 | `HxHistory(enabled bool)` | `hx-history` (separate script dist/ext/hx-history-cache.js) |
 | `HxNonce(nonce string)` | `hx-nonce` (separate script dist/ext/hx-csp.js) |
+| `HxPrompt(question string)` | `hx-prompt` (separate script dist/ext/hx-prompt.js) |
 
-htmx 4 ships two builds. `htmax.js` bundles 8 extensions (ws, sse, preload, optimistic, targets, live, browser-indicator, download), so their methods work once it is loaded. The core `htmx.js` build includes none of them; load each extension's `dist/ext/<name>.js` script yourself. `HxHead`, `HxPtag`, `HxHistory`, `HxNonce` and `swap.Upsert` are never bundled and always need their own script. htmx 4 has no `hx-ext`: loading the script, or the bundle, activates the extension. A method whose extension is absent is an inert no-op, so the attribute is written but ignored. Downloads have no client attribute; use `swap.Download` or the `HxDownload(w, url)` server helper. The `htmx-2-compat` and `hx-alpine-compat` extensions add no per-element attribute.
+htmx 4 ships two builds. `htmax.js` bundles 8 extensions (ws, sse, preload, optimistic, targets, live, browser-indicator, download), so their methods work once it is loaded. The core `htmx.js` build includes none of them; load each extension's `dist/ext/<name>.js` script yourself. `HxHead`, `HxPtag`, `HxHistory`, `HxNonce`, `HxPrompt` and `swap.Upsert` are never bundled and always need their own script. htmx 4 has no `hx-ext`: loading the script, or the bundle, activates the extension. A method whose extension is absent is an inert no-op, so the attribute is written but ignored. Downloads have no client attribute; use `swap.Download` or the `HxDownload(w, url)` server helper. The `htmx-2-compat` and `hx-alpine-compat` extensions add no per-element attribute.
 
 ```go
 // Bundled in htmax.js, work with no extra setup:

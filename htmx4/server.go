@@ -78,10 +78,10 @@ func HxHistoryRestoreRequest(r *http.Request) bool {
 // HxPrompt returns the user's text input from a browser prompt, read from the HX-Prompt
 // request header.
 //
-// hx-prompt was removed in htmx 4: core does not send this header and the htmx 4 extension
-// catalogue has no prompt extension, so against a genuine htmx 4 client this returns an
-// empty string unless something on your side sets HX-Prompt (for example a custom header or
-// an htmx 2 compatibility shim). To collect input directly, send it with HxVals or HxHeaders.
+// hx-prompt is not in htmx 4 core, so the core build never sends this header. It was restored
+// in beta5 as the hx-prompt extension (dist/ext/hx-prompt.js), which shows the prompt and sends
+// HX-Prompt; pair this reader with the client [Wrapper.HxPrompt] setter and load that script. With
+// neither in play this returns an empty string unless something else on your side sets HX-Prompt.
 func HxPrompt(r *http.Request) string {
 	return r.Header.Get(HXPromptHeader)
 }

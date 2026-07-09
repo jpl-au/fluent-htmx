@@ -1,3 +1,6 @@
 # macOS metadata
 ._*
 .DS_Store
+
+# Upstream htmx sources kept locally to grep against - not vendored
+htmx-reference/

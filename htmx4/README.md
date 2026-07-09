@@ -166,7 +166,7 @@ htmx.New(form).
 
 htmx 4 ships two builds. `htmax.js` bundles eight popular extensions (ws, sse, preload, optimistic, targets, live, browser-indicator, download), so their attributes work once it is loaded. The core `htmx.js` build includes none of them; with it you load each extension's `dist/ext/<name>.js` script yourself, after htmx. htmx 4 has no `hx-ext`: loading the script, or the bundle, registers the extension page-wide, and the `extensions` config key can restrict which ones register.
 
-A few extensions are never in `htmax.js` and always need their own script regardless of build: `hx-head`, `hx-ptag`, `hx-history-cache`, `hx-csp`, and the `upsert` swap.
+A few extensions are never in `htmax.js` and always need their own script regardless of build: `hx-head`, `hx-ptag`, `hx-history-cache`, `hx-csp`, `hx-prompt`, and the `upsert` swap.
 
 If an extension is not loaded, its method has no effect. The binding writes the attribute, htmx does not recognise it, and core htmx still works. Each method below notes the script it needs.
 
@@ -259,6 +259,7 @@ These htmx 4 extensions are **not** bundled in `htmax.js` - load the matching `d
 htmx.New(div).HxGet("/news").HxTrigger("every 3s").HxPtag("v42")  // hx-ptag: skip swap if unchanged
 htmx.New(div).HxHistory(false)                                    // hx-history: keep page out of the history cache
 htmx.New(btn).HxPost("/save").HxNonce(nonce)                      // hx-nonce: CSP nonce (hx-csp extension)
+htmx.New(btn).HxPost("/delete").HxPrompt("Are you sure?")         // hx-prompt: ask before the request, answer sent as HX-Prompt
 htmx.New(btn).HxGet("/items").HxSwap(swap.Upsert)                 // upsert swap: update or insert by id
 ```
 

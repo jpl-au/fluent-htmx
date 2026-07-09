@@ -106,6 +106,7 @@ func TestClientSetters(t *testing.T) {
 		{"HxPtag", func(w *Wrapper) { w.HxPtag("v42") }, `hx-ptag="v42"`},
 		{"HxHistory", func(w *Wrapper) { w.HxHistory(false) }, `hx-history="false"`},
 		{"HxNonce", func(w *Wrapper) { w.HxNonce("abc123") }, `hx-nonce="abc123"`},
+		{"HxPrompt", func(w *Wrapper) { w.HxPrompt("Enter name") }, `hx-prompt="Enter name"`},
 	}
 
 	for _, tc := range cases {

@@ -25,13 +25,14 @@
 //   - history_cache.go: History-cache extension (hx-history)
 //   - csp.go: CSP nonce extension (hx-nonce)
 //   - head_support.go: hx-head extension (hx-head)
+//   - prompt.go: Prompt extension (hx-prompt), restored from htmx 2 in beta5
 //   - swap.Upsert: Upsert extension (hx-swap="upsert")
 //
 // Two builds, and what happens if an extension is not loaded. htmx 4 ships two scripts:
 // htmax.js bundles the eight popular extensions (ws, sse, preload, optimistic, targets, live,
 // browser-indicator, download) so their attributes work with no extra includes, while the core
 // htmx.js build contains none of them - with it you include each extension's script yourself,
-// the same as the always-separate extensions (hx-head, hx-ptag, hx-history, hx-nonce, upsert).
+// the same as the always-separate extensions (hx-head, hx-ptag, hx-history, hx-nonce, hx-prompt, upsert).
 //
 // An extension method only writes an attribute (or, server-side, a response header) - it never
 // loads any JavaScript. If the matching extension is not present, htmx does not recognise the
@@ -100,8 +101,8 @@ func (h *Wrapper) SetAttribute(key string, value string) { h.element.SetAttribut
 // SetAttributeRaw sets a custom attribute without escaping, delegating to the
 // wrapped element (node.Element's raw hatch).
 func (h *Wrapper) SetAttributeRaw(key string, value string) { h.element.SetAttributeRaw(key, value) }
-func (h *Wrapper) RenderOpen(buf *bytes.Buffer)          { h.element.RenderOpen(buf) }
-func (h *Wrapper) RenderClose(buf *bytes.Buffer)         { h.element.RenderClose(buf) }
+func (h *Wrapper) RenderOpen(buf *bytes.Buffer)             { h.element.RenderOpen(buf) }
+func (h *Wrapper) RenderClose(buf *bytes.Buffer)            { h.element.RenderClose(buf) }
 
 // HxGet issues an AJAX GET request to the given URL and swaps the response into the DOM.
 func (h *Wrapper) HxGet(url string) *Wrapper {

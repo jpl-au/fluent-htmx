@@ -9,8 +9,8 @@ const (
 // HTMX request headers sent by the client.
 //
 // The triggering element is reported in HX-Source (format "tagName#id") and the request
-// type in HX-Request-Type ("full" or "partial"). HX-Prompt is not sent by htmx 4 (hx-prompt
-// was removed and there is no prompt extension); see HxPrompt.
+// type in HX-Request-Type ("full" or "partial"). HX-Prompt is not sent by htmx 4 core; it is
+// sent by the hx-prompt extension (restored in beta5), which pairs with HxPrompt.
 const (
 	HXRequestHeader               = "HX-Request"
 	HXBoostedHeader               = "HX-Boosted"
