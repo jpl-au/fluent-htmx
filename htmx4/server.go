@@ -247,7 +247,11 @@ func encodeTriggers(events []triggerEvent) (string, error) {
 	return string(jsonBytes), nil
 }
 
-// Response renders the node and writes an HTML response with the given status code.
+// Response renders the node and writes it as the response body with the given HTTP
+// status code and a text/html content type. It is the plain full-response helper for
+// returning a server-rendered fragment or page to htmx; reach for NewTrigger and
+// TriggerBuilder.Write instead when the response also needs to fire client-side events
+// through the HX-Trigger header.
 func Response(w http.ResponseWriter, n node.Node, code int) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)

@@ -2,7 +2,12 @@ package htmx
 
 import "fmt"
 
-// HxTargetError sets the hx-target-error attribute to handle both 4xx and 5xx error responses.
+// HxTargetError routes any error response (every 4xx and 5xx status) to the
+// element matching selector, using the response-targets extension. Normally a
+// swap goes to the request's own target regardless of status, which would drop
+// server-rendered error markup into the success slot; this sends error content
+// somewhere separate, such as a dedicated banner, while success responses still
+// land on the usual target. The extension must be enabled with HxExt("response-targets").
 func (h *Wrapper) HxTargetError(selector string) *Wrapper {
 	h.element.SetAttribute("hx-target-error", selector)
 

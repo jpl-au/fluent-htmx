@@ -273,7 +273,11 @@ func (tb *TriggerBuilder) AddTriggerAfterSwap(eventName string, details any) *Tr
 	return tb.addTrigger(HXTriggerAfterSwapHeader, eventName, details)
 }
 
-// Response renders the node and writes an HTML response with the given status code.
+// Response renders n and writes it as the response body with the given status
+// code and a text/html content type, returning any error from writing. It is the
+// plain full-response helper for handlers that just need to send back rendered
+// HTML; when the response should also fire client-side events, build it with
+// NewTrigger and call TriggerBuilder.Write, which adds the HX-Trigger headers.
 func Response(w http.ResponseWriter, n node.Node, code int) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)

@@ -8,7 +8,11 @@ func (h *Wrapper) Preload(trigger string) *Wrapper {
 	return h
 }
 
-// PreloadImages enables preloading of linked image resources from preloaded HTML fragments.
+// PreloadImages opts the preload extension into also fetching images found in a
+// preloaded response, warming the browser image cache alongside the HTML itself.
+// It defaults to off because preloading images costs extra bandwidth; enable it
+// when a preloaded fragment is image-heavy and you want those images ready the
+// moment the fragment is swapped in.
 func (h *Wrapper) PreloadImages(enabled bool) *Wrapper {
 	value := boolFalse
 	if enabled {

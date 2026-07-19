@@ -84,7 +84,10 @@ type Wrapper struct {
 	element node.Element
 }
 
-// New wraps an element to enable HTMX attribute chaining.
+// New wraps an element so htmx's hx-* attribute methods chain onto it, returning a
+// *Wrapper whose fluent setters build up the element's client-side behaviour. The
+// Wrapper delegates the full node.Element surface to the wrapped element, so it renders
+// identically and can be used anywhere the original element could.
 func New(n node.Element) *Wrapper {
 	return &Wrapper{element: n}
 }
@@ -104,38 +107,58 @@ func (h *Wrapper) SetAttributeRaw(key string, value string) { h.element.SetAttri
 func (h *Wrapper) RenderOpen(buf *bytes.Buffer)             { h.element.RenderOpen(buf) }
 func (h *Wrapper) RenderClose(buf *bytes.Buffer)            { h.element.RenderClose(buf) }
 
-// HxGet issues an AJAX GET request to the given URL and swaps the response into the DOM.
+// HxGet issues an AJAX GET request to url when the element is triggered, then
+// swaps the returned HTML into the page. By default the response replaces the
+// element's own inner content; pair it with HxTarget and HxSwap to place the
+// content elsewhere or change how it is inserted. GET sends no body and should
+// stay idempotent, so use it to fetch and show server-rendered fragments rather
+// than to change state.
 func (h *Wrapper) HxGet(url string) *Wrapper {
 	h.element.SetAttribute("hx-get", url)
 
 	return h
 }
 
-// HxPost issues an AJAX POST request to the given URL and swaps the response into the DOM.
+// HxPost issues an AJAX POST request to url when the element is triggered, then
+// swaps the returned HTML into the page. Enclosed form values, plus anything
+// added with hx-include, are serialised into the request body, making POST the
+// verb for creating data or otherwise mutating state. The response swaps into
+// the element itself unless HxTarget and HxSwap redirect it.
 func (h *Wrapper) HxPost(url string) *Wrapper {
 	h.element.SetAttribute("hx-post", url)
 
 	return h
 }
 
-// HxPut issues an AJAX PUT request to the given URL and swaps the response into the DOM.
+// HxPut issues an AJAX PUT request to url when the element is triggered, then
+// swaps the returned HTML into the page. PUT carries the enclosed form values as
+// its body and conventionally replaces a resource wholesale; htmx sends the real
+// method, so no _method override field is needed. The response swaps into the
+// element unless HxTarget and HxSwap redirect it.
 func (h *Wrapper) HxPut(url string) *Wrapper {
 	h.element.SetAttribute("hx-put", url)
 
 	return h
 }
 
-// HxPatch issues an AJAX PATCH request to the given URL and swaps the response into the DOM.
+// HxPatch issues an AJAX PATCH request to url when the element is triggered, then
+// swaps the returned HTML into the page. PATCH carries the enclosed form values
+// as its body and conventionally applies a partial update to a resource; htmx
+// sends the real method directly. The response swaps into the element unless
+// HxTarget and HxSwap redirect it.
 func (h *Wrapper) HxPatch(url string) *Wrapper {
 	h.element.SetAttribute("hx-patch", url)
 
 	return h
 }
 
-// HxDelete issues an AJAX DELETE request to the given URL and swaps the response into the DOM.
+// HxDelete issues an AJAX DELETE request to url when the element is triggered,
+// then swaps the returned HTML into the page. Use it to remove a resource; the
+// server's response, often the surrounding list re-rendered or empty to clear
+// the element, swaps into the element unless HxTarget and HxSwap redirect it.
 //
-// hx-delete behaves like hx-get and does not include the enclosing form's inputs.
-// Add HxInclude("closest form") where the form data is needed.
+// Like GET, a DELETE does not include the enclosing form's inputs; add
+// HxInclude("closest form") where that form data is needed.
 func (h *Wrapper) HxDelete(url string) *Wrapper {
 	h.element.SetAttribute("hx-delete", url)
 

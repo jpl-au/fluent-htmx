@@ -286,12 +286,14 @@ htmx.Response(w, div.Text("content"), http.StatusOK)
 | Function | Returns |
 |----------|---------|
 | `NewSSE(w http.ResponseWriter)` | `(*SSEWriter, error)` - initialises SSE stream, sets headers |
-| `(*SSEWriter).Send(event, data string)` | `error` - sends a named event, handles multi-line data, flushes |
+| `(*SSEWriter).Send(event string, n node.Node)` | `error` - renders the node and sends a named event, one data line per physical line, flushes; a nil node sends an empty data line |
+| `(*SSEWriter).SendBytes(event string, data []byte)` | `error` - escape hatch for non-fluent payloads; sends raw bytes as the event data, one data line per physical line, flushes |
 
 ```go
 sse, err := htmx.NewSSE(w)
-sse.Send("message", "<div>Updated</div>")
-sse.Send("done", "")  // closes the stream on the client's hx-sse:close event
+sse.Send("message", div.Text("Updated"))
+sse.SendBytes("message", buf.Bytes())  // non-fluent payload
+sse.Send("done", nil)  // closes the stream on the client's hx-sse:close event
 ```
 
 ### Header Constants

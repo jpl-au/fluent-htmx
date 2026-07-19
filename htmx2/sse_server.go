@@ -1,10 +1,12 @@
 package htmx
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
+
+	"github.com/jpl-au/fluent/node"
 )
 
 // SSEWriter sends Server-Sent Events over an HTTP response. It pairs with the
@@ -32,19 +34,41 @@ func NewSSE(w http.ResponseWriter) (*SSEWriter, error) {
 	return &SSEWriter{w: w, f: f}, nil
 }
 
-// Send writes a named SSE event with the given data payload. Multi-line data is
-// handled automatically per the SSE specification - each line is sent with its
-// own data: prefix. The response is flushed after each event to ensure immediate
-// delivery to the client.
+// Send writes a named SSE event carrying the rendered node as its data payload.
+// The node is rendered with RenderBuilder and each physical line of the output is
+// sent with its own data: prefix, so a multi-line fragment stays one valid event
+// per the SSE specification. A nil node sends a single empty data line, which suits
+// signal-only events such as one that closes the stream. The response is flushed
+// after each event to ensure immediate delivery to the client.
+//
+// Send is the fluent path. When the payload is not a fluent node, for example
+// markup from another template engine or a cached fragment, use SendBytes.
 //
 // The event name should match what the client expects in sse-swap or sse-close
 // attributes.
-func (s *SSEWriter) Send(event string, data string) error {
+func (s *SSEWriter) Send(event string, n node.Node) error {
+	if n == nil {
+		return s.SendBytes(event, nil)
+	}
+
+	var buf bytes.Buffer
+	n.RenderBuilder(&buf)
+
+	return s.SendBytes(event, buf.Bytes())
+}
+
+// SendBytes writes a named SSE event whose data is the given bytes, without
+// involving fluent. It is the escape hatch for payloads that are not fluent
+// nodes: markup from another template engine, a cached fragment, or plain text.
+// Each newline-separated line of data is written with its own data: prefix so a
+// multi-line payload stays one valid event, and a nil or empty payload sends a
+// single empty data line. The response is flushed after the event.
+func (s *SSEWriter) SendBytes(event string, data []byte) error {
 	if _, err := fmt.Fprintf(s.w, "event: %s\n", event); err != nil {
 		return fmt.Errorf("failed to write SSE event: %w", err)
 	}
 
-	for line := range strings.SplitSeq(data, "\n") {
+	for line := range bytes.SplitSeq(data, []byte("\n")) {
 		if _, err := fmt.Fprintf(s.w, "data: %s\n", line); err != nil {
 			return fmt.Errorf("failed to write SSE data: %w", err)
 		}

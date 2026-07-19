@@ -287,12 +287,18 @@ func eventsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    sse.Send("message", "<div>New content</div>")
-    sse.Send("done", "")  // triggers sse-close on client
+    sse.Send("message", div.Text("New content"))
+    sse.Send("done", nil)  // triggers sse-close on client
 }
 ```
 
 `NewSSE` sets `Content-Type: text/event-stream`, `Cache-Control: no-cache`, and `Connection: keep-alive`. It returns an error if the ResponseWriter does not support flushing. Each `Send` call writes a named SSE event and flushes immediately.
+
+`Send` renders a fluent node. When the payload is not a fluent node - markup from another template engine, a cached fragment, or plain text - use `SendBytes(event string, data []byte)` instead:
+
+```go
+sse.SendBytes("message", buf.Bytes())  // any []byte payload, no fluent involved
+```
 
 ---
 

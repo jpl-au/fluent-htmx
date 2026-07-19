@@ -13,7 +13,11 @@ type config struct {
 	settings map[string]any
 }
 
-// Config creates a new HTMX configuration builder.
+// Config starts a new HTMX configuration builder. Chain the setter methods to
+// override individual htmx.config options; any option you do not set is left out
+// entirely, so HTMX keeps its own default for it rather than being reset to a
+// zero value. Once configured, emit the result with ToMetaTag to embed it in the
+// page head, or with ToJSON when you need the raw settings object.
 func Config() *config {
 	return &config{
 		settings: make(map[string]any),
@@ -341,7 +345,11 @@ func (c *config) ToMetaTag() (string, error) {
 	return fmt.Sprintf(`<meta name="htmx-config" content='%s'>`, string(jsonBytes)), nil
 }
 
-// ToJSON returns the configuration as a JSON string.
+// ToJSON serialises the configured options into a JSON object matching the
+// htmx.config shape, for example {"defaultSwapStyle":"outerHTML","timeout":5000}.
+// Use it when you want to supply the settings yourself, such as merging them into
+// an existing config object or feeding a call to htmx.config.foo in JavaScript.
+// Prefer ToMetaTag when you simply want a drop-in <meta> tag for the page head.
 func (c *config) ToJSON() (string, error) {
 	jsonBytes, err := json.Marshal(c.settings)
 	if err != nil {

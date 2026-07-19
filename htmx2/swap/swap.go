@@ -2,7 +2,11 @@
 // is inserted into the DOM.
 package swap
 
-// Strategy defines the strategy used when swapping content into the DOM.
+// Strategy is the typed hx-swap value describing how a response is inserted into
+// the DOM; the named constants in this package are its valid values. HxSwap and
+// the config default-swap setters take a Strategy rather than a plain string, so
+// the swap style is checked at compile time and a typo cannot slip through as a
+// silently ignored attribute. Use Custom when you need to attach modifiers.
 type Strategy string
 
 const (
