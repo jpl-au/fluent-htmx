@@ -1,5 +1,8 @@
 package htmx
 
+// Preload extension. Uses the preload / preload-images attributes. Enable it with HxExt("preload")
+// and include the preload extension script; without it the attributes are silent no-ops.
+
 // Preload enables preloading on an element with the specified trigger.
 // Common values: "mousedown" (default), "mouseover", "always", or custom event names.
 func (h *Wrapper) Preload(trigger string) *Wrapper {

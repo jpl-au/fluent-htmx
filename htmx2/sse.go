@@ -1,5 +1,8 @@
 package htmx
 
+// Server-Sent Events extension. Uses the sse-connect / sse-swap attributes. Enable it with
+// HxExt("sse") and include the SSE extension script; without it the attributes are silent no-ops.
+
 // SSEConnect establishes a Server-Sent Events connection to the given URL.
 // The connection remains open and automatically reconnects on failure.
 // Requires the SSE extension to be enabled via HxExt("sse").

@@ -165,18 +165,18 @@ func (c *config) AttributesToSettle(attrs []string) *config {
 	return c
 }
 
-// WsReconnectDelay sets the reconnection strategy for WebSocket connections.
+// WSReconnectDelay sets the reconnection strategy for WebSocket connections.
 // Defaults to "full-jitter". Accepts a fixed delay like "1000" (ms) or a backoff
 // strategy like "full-jitter" which adds randomised exponential backoff.
-func (c *config) WsReconnectDelay(delay string) *config {
+func (c *config) WSReconnectDelay(delay string) *config {
 	c.settings["wsReconnectDelay"] = delay
 
 	return c
 }
 
-// WsBinaryType sets the binary data type for WebSocket messages.
+// WSBinaryType sets the binary data type for WebSocket messages.
 // Defaults to "blob". Set to "arraybuffer" if the server sends binary frames.
-func (c *config) WsBinaryType(binaryType string) *config {
+func (c *config) WSBinaryType(binaryType string) *config {
 	c.settings["wsBinaryType"] = binaryType
 
 	return c

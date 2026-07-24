@@ -308,20 +308,25 @@ func (h *Wrapper) HxEncoding(encoding string) *Wrapper {
 // HxPreserve keeps the element unchanged during swaps by matching its ID.
 // Useful for persistent elements like video players or iframes that should
 // survive content updates around them.
-func (h *Wrapper) HxPreserve(preserve bool) *Wrapper {
-	value := boolFalse
-	if preserve {
-		value = boolTrue
-	}
-
-	h.element.SetAttribute("hx-preserve", value)
+//
+// htmx selects preserved elements by the presence of hx-preserve, never by its value, so this is
+// a no-argument setter. To stop preserving an element, omit the call: hx-preserve="false" would
+// still preserve it.
+func (h *Wrapper) HxPreserve() *Wrapper {
+	h.element.SetAttribute("hx-preserve", boolTrue)
 
 	return h
 }
 
-// HxHistory prevents the page from being saved to the browser's localStorage history cache.
-// Use HxHistory("false") on pages that contain sensitive data to avoid caching it.
-func (h *Wrapper) HxHistory(value string) *Wrapper {
+// HxHistory controls whether the page is saved to the browser's history cache. Pass false on
+// pages that contain sensitive data to keep them out of the cache (emitting hx-history="false");
+// the default is to cache.
+func (h *Wrapper) HxHistory(enabled bool) *Wrapper {
+	value := boolFalse
+	if enabled {
+		value = boolTrue
+	}
+
 	h.element.SetAttribute("hx-history", value)
 
 	return h
