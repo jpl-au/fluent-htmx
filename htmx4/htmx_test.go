@@ -93,8 +93,8 @@ func TestClientSetters(t *testing.T) {
 		{"HxConfig", func(w *Wrapper) { w.HxConfig("timeout:5000") }, `hx-config="timeout:5000"`},
 		{"HxStatus", func(w *Wrapper) { w.HxStatus("422", "swap:none") }, `hx-status:422="swap:none"`},
 		// Extensions.
-		{"WsConnect", func(w *Wrapper) { w.WsConnect("/ws/chat") }, `hx-ws:connect="/ws/chat"`},
-		{"WsSend", func(w *Wrapper) { w.WsSend() }, `hx-ws:send`},
+		{"WSConnect", func(w *Wrapper) { w.WSConnect("/ws/chat") }, `hx-ws:connect="/ws/chat"`},
+		{"WSSend", func(w *Wrapper) { w.WSSend() }, `hx-ws:send`},
 		{"SSEConnect", func(w *Wrapper) { w.SSEConnect("/sse/events") }, `hx-sse:connect="/sse/events"`},
 		{"SSEClose", func(w *Wrapper) { w.SSEClose("streamEnd") }, `hx-sse:close="streamEnd"`},
 		{"Preload", func(w *Wrapper) { w.Preload("mouseover") }, `hx-preload="mouseover"`},

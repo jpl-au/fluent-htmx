@@ -1,5 +1,6 @@
-// Package event defines htmx event names for use with HxOn() handlers and JavaScript
-// listeners.
+// Package event defines htmx event names for use with HxOn() handlers and JavaScript listeners.
+// It covers htmx 4 core events and the events emitted by the extensions (both the ones bundled
+// into htmax.js and the separate scripts).
 //
 // Events follow the htmx:phase:action[:sub-action] scheme; most errors are consolidated
 // into htmx:error. The constants below hold the full dispatched names.
@@ -9,6 +10,7 @@ package event
 const (
 	BeforeInit     = "htmx:before:init"     // Before htmx initialises a node
 	AfterInit      = "htmx:after:init"      // After htmx initialises a node
+	BeforeOnInit   = "htmx:before:on:init"  // Before an hx-on handler is initialised
 	BeforeProcess  = "htmx:before:process"  // Before htmx processes a node
 	AfterProcess   = "htmx:after:process"   // After htmx processes a node
 	BeforeRequest  = "htmx:before:request"  // Before an AJAX request is sent
@@ -18,10 +20,19 @@ const (
 	BeforeResponse = "htmx:before:response" // Before the response body is read (cancellable)
 	BeforeSwap     = "htmx:before:swap"     // Before content is swapped in
 	AfterSwap      = "htmx:after:swap"      // After content is swapped in
+	FinallySwap    = "htmx:finally:swap"    // Always fires after a swap, success or failure
 	BeforeSettle   = "htmx:before:settle"   // Before the settle phase
 	AfterSettle    = "htmx:after:settle"    // After the settle phase
 	BeforeCleanup  = "htmx:before:cleanup"  // Before an element is cleaned up
 	AfterCleanup   = "htmx:after:cleanup"   // After an element is cleaned up
+
+	AfterImplicitInheritance = "htmx:after:implicitInheritance" // After attributes are implicitly inherited to a node
+)
+
+// Morph events, fired while the idiomorph swap styles reconcile the DOM.
+const (
+	BeforeMorphAttr = "htmx:before:morph:attr" // Before a morph updates an attribute (cancellable)
+	BeforeMorphNode = "htmx:before:morph:node" // Before a morph updates a node (cancellable)
 )
 
 // History events.
@@ -49,4 +60,72 @@ const (
 const (
 	Confirm = "htmx:confirm" // Fired to confirm a request; cancellable
 	Abort   = "htmx:abort"   // Sent to an element to abort its in-flight request
+)
+
+// Download extension events (hx-download / swap.Download).
+const (
+	DownloadStart    = "htmx:download:start"    // A file download begins
+	DownloadProgress = "htmx:download:progress" // Progress fires as a download streams
+	DownloadComplete = "htmx:download:complete" // A file download finishes
+)
+
+// Server-Sent Events extension events (hx-sse).
+const (
+	BeforeSSEConnection = "htmx:before:sse:connection" // Before an SSE connection opens
+	AfterSSEConnection  = "htmx:after:sse:connection"  // After an SSE connection opens
+	BeforeSSEMessage    = "htmx:before:sse:message"    // Before an SSE message is handled
+	AfterSSEMessage     = "htmx:after:sse:message"     // After an SSE message is handled
+	SSEClose            = "htmx:sse:close"             // An SSE connection closes
+	SSEError            = "htmx:sse:error"             // An SSE connection error
+)
+
+// WebSocket extension events (hx-ws).
+const (
+	BeforeWSConnection = "htmx:before:ws:connection" // Before a WebSocket connection opens
+	AfterWSConnection  = "htmx:after:ws:connection"  // After a WebSocket connection opens
+	BeforeWSMessage    = "htmx:before:ws:message"    // Before a received WebSocket message is handled
+	AfterWSMessage     = "htmx:after:ws:message"     // After a received WebSocket message is handled
+	BeforeWSRequest    = "htmx:before:ws:request"    // Before a message is sent to the server
+	AfterWSRequest     = "htmx:after:ws:request"     // After a message is sent to the server
+	WSClose            = "htmx:ws:close"             // A WebSocket connection closes
+	WSError            = "htmx:ws:error"             // A WebSocket connection error
+)
+
+// History-cache extension events (hx-history).
+const (
+	HistoryCacheBeforeSave    = "htmx:history:cache:before:save"    // Before the page is saved to the history cache
+	HistoryCacheAfterSave     = "htmx:history:cache:after:save"     // After the page is saved to the history cache
+	HistoryCacheBeforeRestore = "htmx:history:cache:before:restore" // Before a page is restored from the history cache
+	HistoryCacheAfterRestore  = "htmx:history:cache:after:restore"  // After a page is restored from the history cache
+	HistoryCacheHit           = "htmx:history:cache:hit"            // A history navigation was served from the cache
+	HistoryCacheMiss          = "htmx:history:cache:miss"           // A history navigation missed the cache
+)
+
+// Head-support extension events (hx-head).
+const (
+	BeforeHeadMerge  = "htmx:before:head:merge"  // Before the document head is merged
+	AfterHeadMerge   = "htmx:after:head:merge"   // After the document head is merged
+	BeforeHeadAdd    = "htmx:before:head:add"    // Before an element is added to the head
+	BeforeHeadRemove = "htmx:before:head:remove" // Before an element is removed from the head
+)
+
+// CSP extension events (hx-nonce).
+const (
+	SecurityStrip     = "htmx:security:strip"     // An inline handler was stripped to satisfy the policy
+	SecurityViolation = "htmx:security:violation" // A content-security-policy violation was detected
+)
+
+// Prompt extension events (hx-prompt).
+const (
+	Prompt = "htmx:prompt" // The prompt extension asks the user for input before a request
+)
+
+// Multipart streaming extension events (hx-multipart).
+const (
+	MultipartBeforeConnection = "htmx:multipart:before:connection" // Before a multipart connection opens; cancellable
+	MultipartAfterConnection  = "htmx:multipart:after:connection"  // After a multipart connection opens
+	MultipartBeforePart       = "htmx:multipart:before:part"       // Before a part is swapped; cancellable
+	MultipartAfterPart        = "htmx:multipart:after:part"        // After a part is swapped
+	MultipartError            = "htmx:multipart:error"             // A multipart streaming or reconnect error
+	MultipartClose            = "htmx:multipart:close"             // After a multipart connection closes
 )

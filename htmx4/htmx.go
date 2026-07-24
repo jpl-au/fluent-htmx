@@ -26,6 +26,7 @@
 //   - csp.go: CSP nonce extension (hx-nonce)
 //   - head_support.go: hx-head extension (hx-head)
 //   - prompt.go: Prompt extension (hx-prompt), restored from htmx 2 in beta5
+//   - multipart.go: Multipart streaming extension (hx-multipart:connect, MultipartWriter), added in beta6
 //   - swap.Upsert: Upsert extension (hx-swap="upsert")
 //
 // Two builds, and what happens if an extension is not loaded. htmx 4 ships two scripts:
