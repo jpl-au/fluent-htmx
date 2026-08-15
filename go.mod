@@ -1,3 +1,4 @@
+// Deprecated: use github.com/jpl-au/fluent-htmx/htmx2 instead.
 module github.com/jpl-au/fluent-htmx
 
 go 1.25.0
