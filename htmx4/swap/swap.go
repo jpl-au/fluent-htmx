@@ -23,21 +23,23 @@ const (
 const (
 	InnerMorph  Strategy = "innerMorph"  // Morph the children of the target using the idiomorph algorithm
 	OuterMorph  Strategy = "outerMorph"  // Morph the target element itself using the idiomorph algorithm
-	TextContent Strategy = "textContent" // Set the target's text content (no HTML parsing)
+	TextContent Strategy = "textContent" // Set the target's text content to the text of the parsed response; markup is dropped
 	OuterSync   Strategy = "outerSync"   // Replace the target's attributes and children in place, keeping the element itself; used for body swaps and history restores
 )
 
 // Extension swap styles. Each requires its htmx 4 extension, and both are bundled into
-// htmax.js.
+// htmax.js. With the extension absent the style is unknown to htmx: the swap throws
+// "Unknown swap style", htmx:error fires, and nothing is swapped.
 const (
 	Download Strategy = "download" // Stream the response to the browser as a file download (download extension)
 	Upsert   Strategy = "upsert"   // Update or insert response elements by id (upsert extension; supports sort, key: and prepend modifiers via swap.Custom)
 )
 
 // Custom creates a swap strategy string with modifiers after the style. The modifiers htmx
-// reads are transition, settle, swapEmpty, strip, ignoreTitle, focusScroll, show and
-// showTarget, scroll and scrollTarget, target (for out-of-band swaps), and the upsert
-// extension's key, sort and prepend. The show and scroll modifiers take separate keys for
+// reads are swap (a delay before the swap), transition, settle, swapEmpty, strip,
+// ignoreTitle, focusScroll, show and showTarget, scroll and scrollTarget, target (which
+// retargets a main or out-of-band swap; a partial takes its target from its own attribute),
+// and the upsert extension's key, sort and prepend. The show and scroll modifiers take separate keys for
 // position and target, e.g. swap.Custom("innerHTML show:top showTarget:#other").
 func Custom(strategy string) Strategy {
 	return Strategy(strategy)

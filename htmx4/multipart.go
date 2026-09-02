@@ -24,8 +24,9 @@ func (h *Wrapper) MultipartConnect(url string) *Wrapper {
 }
 
 // MultipartClose closes the multipart connection when the given trigger fires. It takes effect
-// only on an element that also has hx-multipart:connect, and trigger is a full hx-trigger spec
-// (for example "click" or "every 2s"), not merely a bare event name.
+// only on an element that also has hx-multipart:connect. The value is an hx-trigger spec; the
+// usual value is the name of an event a part fires through its HX-Trigger header, such as
+// "done", and that part still swaps before the connection closes.
 func (h *Wrapper) MultipartClose(trigger string) *Wrapper {
 	h.element.SetAttribute("hx-multipart:close", trigger)
 

@@ -3,9 +3,9 @@ package htmx
 import "github.com/jpl-au/fluent-htmx/htmx4/swap"
 
 // Extension configuration. Each extension reads its own object under htmx.config, such as
-// htmx.config.sse or htmx.config.ws, and these setters write into those objects. The
-// generated JSON nests them the same way, so the meta tag carries them without any extra
-// wiring. Durations are milliseconds, as the extensions read them.
+// htmx.config.sse, htmx.config.ws or htmx.config.multipart, and these setters write into
+// those objects. The generated JSON nests them the same way, so the meta tag carries them
+// without any extra wiring. Durations are milliseconds, as the extensions read them.
 
 // group returns the nested settings object for an extension, creating it on first use.
 func (c *config) group(name string) map[string]any {
@@ -122,8 +122,8 @@ func (c *config) WSReconnectJitter(fraction float64) *config {
 	return c
 }
 
-// WSPauseOnBackground controls whether the WebSocket extension leaves a closed socket
-// closed while the tab is hidden and reconnects when it is shown again. Defaults to true.
+// WSPauseOnBackground controls whether the WebSocket extension closes the socket while the
+// tab is hidden and reopens it when the tab is shown again. Defaults to true.
 func (c *config) WSPauseOnBackground(pause bool) *config {
 	c.group("ws")["pauseOnBackground"] = pause
 
@@ -131,8 +131,8 @@ func (c *config) WSPauseOnBackground(pause bool) *config {
 }
 
 // WSMaxOutgoingMessagesQueueSize caps how many messages sent while the socket is not open
-// are held for delivery once it opens. A message past the cap raises htmx:ws:error.
-// Defaults to 100.
+// are held for delivery once it opens. A message past the cap raises htmx:ws:error and is
+// dropped. Defaults to 100; 0 turns queuing off.
 func (c *config) WSMaxOutgoingMessagesQueueSize(size int) *config {
 	c.group("ws")["maxOutgoingMessagesQueueSize"] = size
 
@@ -143,6 +143,55 @@ func (c *config) WSMaxOutgoingMessagesQueueSize(size int) *config {
 // argument to the WebSocket constructor. Defaults to none.
 func (c *config) WSProtocols(protocols []string) *config {
 	c.group("ws")["protocols"] = protocols
+
+	return c
+}
+
+// MultipartReconnect controls whether the multipart extension reconnects after a stream ends
+// or fails. Defaults to true for an hx-multipart:connect element and false for a one-shot
+// response.
+func (c *config) MultipartReconnect(reconnect bool) *config {
+	c.group("multipart")["reconnect"] = reconnect
+
+	return c
+}
+
+// MultipartReconnectDelay sets the first reconnect delay in milliseconds. Each failed
+// attempt doubles it up to MultipartReconnectMaxDelay. Defaults to 500.
+func (c *config) MultipartReconnectDelay(ms int) *config {
+	c.group("multipart")["reconnectDelay"] = ms
+
+	return c
+}
+
+// MultipartReconnectMaxDelay caps the reconnect delay in milliseconds. Defaults to 60000.
+func (c *config) MultipartReconnectMaxDelay(ms int) *config {
+	c.group("multipart")["reconnectMaxDelay"] = ms
+
+	return c
+}
+
+// MultipartReconnectMaxAttempts caps how many times the multipart extension reconnects
+// before giving up. Defaults to unlimited.
+func (c *config) MultipartReconnectMaxAttempts(attempts int) *config {
+	c.group("multipart")["reconnectMaxAttempts"] = attempts
+
+	return c
+}
+
+// MultipartReconnectJitter sets the random fraction added to or taken from each reconnect
+// delay. Defaults to 0.3.
+func (c *config) MultipartReconnectJitter(fraction float64) *config {
+	c.group("multipart")["reconnectJitter"] = fraction
+
+	return c
+}
+
+// MultipartPauseOnBackground controls whether the multipart extension drops the connection
+// while the tab is hidden and reconnects when it is shown again. Defaults to true for an
+// hx-multipart:connect element.
+func (c *config) MultipartPauseOnBackground(pause bool) *config {
+	c.group("multipart")["pauseOnBackground"] = pause
 
 	return c
 }
@@ -180,16 +229,17 @@ func (c *config) PreloadAutoBoost(auto bool) *config {
 	return c
 }
 
-// PreloadBoostEvent sets the event that starts a preload on a boosted link without an
-// hx-preload attribute. Defaults to "mousedown".
+// PreloadBoostEvent sets the event that starts a preload on a boosted link or an hx-get
+// element without an hx-preload attribute. Defaults to "mousedown".
 func (c *config) PreloadBoostEvent(event string) *config {
 	c.group("preload")["boostEvent"] = event
 
 	return c
 }
 
-// PreloadBoostTimeout sets how long in milliseconds a preloaded response for a boosted link
-// stays usable. Defaults to 5000.
+// PreloadBoostTimeout sets how long in milliseconds a preloaded response stays usable, for
+// a boosted link or an hx-get element without an hx-preload attribute. Defaults to 5000; a
+// value of 0 is ignored and the default stays.
 func (c *config) PreloadBoostTimeout(ms int) *config {
 	c.group("preload")["boostTimeout"] = ms
 
@@ -198,15 +248,17 @@ func (c *config) PreloadBoostTimeout(ms int) *config {
 
 // HistoryCacheEnabled turns the history-cache extension on or off. The extension is in the
 // htmax.js bundle but starts disabled there, so a bundle user calls this with true to opt
-// in. With the core build and the separate script, it is on unless this is set to false.
+// in. Under the bundle, writing any HistoryCache* setting also enables the cache, so a
+// bundle user who sets another option and wants the cache off must call this with false.
+// With the core build and the separate script, it is on unless this is set to false.
 func (c *config) HistoryCacheEnabled(enabled bool) *config {
 	c.group("historyCache")["disable"] = !enabled
 
 	return c
 }
 
-// HistoryCacheSize sets how many pages the history cache keeps in session storage.
-// Defaults to 10.
+// HistoryCacheSize sets how many pages the history cache keeps in session storage, with
+// the oldest evicted first. Defaults to 10; 0 turns caching off.
 func (c *config) HistoryCacheSize(pages int) *config {
 	c.group("historyCache")["size"] = pages
 
@@ -256,7 +308,8 @@ func (c *config) CompatSwapErrorResponseCodes(swapErrors bool) *config {
 }
 
 // CompatSuppressInheritanceLogs silences the htmx-2-compat extension's console notes about
-// attributes that htmx 2 inherited and htmx 4 does not. Defaults to false.
+// attributes that htmx 2 inherited and htmx 4 does not, and the htmxImplicitInheritace
+// event it dispatches with them. Defaults to false.
 func (c *config) CompatSuppressInheritanceLogs(suppress bool) *config {
 	c.group("compat")["suppressInheritanceLogs"] = suppress
 

@@ -84,8 +84,8 @@ htmx.New(elem).
 | `HxSelect(selector, ...Mod)` | `hx-select` | Select content from response |
 | `HxSelectOOB(selector, ...Mod)` | `hx-select-oob` | Out-of-band selection |
 | `HxSwapOOB(value)` | `hx-swap-oob` | Out-of-band swaps |
-| `HxVals(json, ...Mod)` | `hx-vals` | Add values to request (`js:` prefix for computed values) |
-| `HxHeaders(json, ...Mod)` | `hx-headers` | Add headers to request |
+| `HxVals(values, ...Mod)` | `hx-vals` | Add values to request, as JSON or `key:value` (`js:` prefix for computed values) |
+| `HxHeaders(headers, ...Mod)` | `hx-headers` | Add headers to request, as JSON or `key:value` |
 | `HxInclude(selector, ...Mod)` | `hx-include` | Include additional values |
 | `HxIndicator(selector, ...Mod)` | `hx-indicator` | Loading indicator element |
 | `HxConfirm(message, ...Mod)` | `hx-confirm` | Confirmation prompt |
@@ -101,6 +101,7 @@ htmx.New(elem).
 | `HxConfig(json, ...Mod)` | `hx-config` | Per-element request configuration (JSON or `key:value`) |
 | `HxStatus(code, spec, ...Mod)` | `hx-status:CODE` | Per-status-code swap behaviour |
 | `HxOn(event, handler)` | `hx-on:event` | Inline event handlers |
+| `HxOnExtended(spec)` | `hx-on` | Extended form `"event -> code; event -> code"` with the hx-trigger grammar; binds the camelCase view transition events that `HxOn` cannot |
 | `HxBoostConfig(config, ...Mod)` | `hx-boost` | Boost with request overrides, e.g. `"target:#main swap:innerHTML"` |
 
 `HxSwap` accepts a `swap.Strategy` type. Use the predefined constants `swap.InnerHTML`, `swap.OuterHTML`, `swap.BeforeBegin`, `swap.AfterBegin`, `swap.BeforeEnd`, `swap.AfterEnd`, `swap.Delete`, `swap.None`, `swap.InnerMorph`, `swap.OuterMorph`, `swap.TextContent`, `swap.OuterSync`, or `swap.Custom("innerHTML show:top")` for strategies with modifiers.
@@ -153,7 +154,7 @@ htmx.New(form).HxInclude("#global-fields", htmx.InheritedAppend)
 | `htmx.Inherited` | `:inherited` | Attribute applies to the element and inherits to all descendants |
 | `htmx.InheritedAppend` | `:inherited:append` | Inherits, but a descendant that also sets the attribute appends to the inherited value instead of replacing it |
 
-The modifier is accepted by `HxTarget`, `HxSwap`, `HxTrigger`, `HxBoost`, `HxConfirm`, `HxVals`, `HxHeaders`, `HxIndicator`, `HxPushURL`, `HxReplaceURL`, `HxSelect`, `HxSelectOOB`, `HxInclude`, `HxSync`, `HxEncoding`, `HxValidate`, `HxDisable`, `HxConfig`, and `HxStatus`. Only `HxPreserve`, `HxSwapOOB`, `HxHistoryElt` and `HxIgnore` take no modifier - htmx reads those by presence or by id on a single element. The request verbs, `HxAction` and `HxMethod` also omit it, since an inherited verb cannot by itself initiate a request.
+The modifier is accepted by `HxTarget`, `HxSwap`, `HxTrigger`, `HxBoost`, `HxBoostConfig`, `HxConfirm`, `HxVals`, `HxHeaders`, `HxIndicator`, `HxPushURL`, `HxReplaceURL`, `HxSelect`, `HxSelectOOB`, `HxInclude`, `HxSync`, `HxEncoding`, `HxValidate`, `HxDisable`, `HxConfig`, and `HxStatus`. Only `HxPreserve`, `HxSwapOOB`, `HxHistoryElt` and `HxIgnore` take no modifier - htmx reads those by presence or by id on a single element. The request verbs, `HxAction` and `HxMethod` also omit it, since an inherited verb cannot by itself initiate a request. `HxMorphSkip`, `HxMorphSkipChildren` and `HxOn` take none.
 
 ## Status-Code Swaps
 
@@ -168,7 +169,7 @@ htmx.New(form).
 
 ## Extensions
 
-htmx 4 ships two builds. `htmax.js` bundles eleven extensions (ws, sse, preload, pending, targets, live, browser-indicator, download, history-cache, upsert and alpine-compat), so their attributes work once it is loaded. The history cache is in the bundle but stays off until the config enables it. The core `htmx.js` build includes none of them; with it you load each extension's `dist/ext/<name>.js` script yourself, after htmx. htmx 4 has no `hx-ext`: loading the script, or the bundle, registers the extension page-wide, and the `extensions` config key can restrict which ones register.
+htmx 4 ships two builds. `htmax.js` bundles eleven extensions (registered as `sse`, `ws`, `preload`, `hx-pending`, `hx-targets`, `hx-live`, `browser-indicator`, `download`, `history-cache`, `upsert` and `alpine-compat`), so their attributes work once it is loaded. The history cache is in the bundle but stays off until the config enables it. The core `htmx.js` build includes none of them; with it you load each extension's `dist/ext/<name>.js` script yourself, after htmx. htmx 4 has no `hx-ext`: loading the script, or the bundle, registers the extension page-wide, and the `extensions` config key can restrict which ones register.
 
 A few extensions are never in `htmax.js` and always need their own script regardless of build: `hx-head`, `hx-ptag`, `hx-csp`, `hx-prompt` and `hx-multipart`.
 
@@ -244,7 +245,7 @@ Downloads have no client attribute. Trigger one with the `swap.Download` swap st
 
 ```go
 htmx.New(link).HxGet("/files/report.pdf").HxSwap(swap.Download)  // client: stream as a file
-htmx.HxDownload(w, "/files/report.pdf")                          // server: sets HX-Download
+htmx.HxDownload(w, "/files/report.pdf")                          // server: sets HX-Download; the body is swapped as usual
 ```
 
 The bundled download extension streams the response to the browser as a file and fires `htmx:download:start`, `:progress` and `:complete` events.
@@ -255,7 +256,7 @@ The bundled download extension streams the response to the browser as a file and
 htmx.New(elem).HxHead("merge")  // merge, append, or re-eval
 ```
 
-`HxHead` sets `hx-head`, read by the htmx 4 **`hx-head` extension** (a separate script, `dist/ext/hx-head.js`, not bundled in `htmax.js`). Put `"merge"` or `"append"` on the response `<head>`, or `"re-eval"` on an individual head element. Without that extension loaded, core htmx swaps in the response title only and ignores the attribute.
+`HxHead` sets `hx-head`, read by the htmx 4 **`hx-head` extension** (a separate script, `dist/ext/hx-head.js`, not bundled in `htmax.js`). Put `"merge"` or `"append"` on the response `<head>`, or `"re-eval"` on an individual head element to have it re-added when the new head contains it, or in append mode. Without that extension loaded, core htmx swaps in the response title only and ignores the attribute.
 
 ### Other extensions (separate scripts)
 
@@ -267,7 +268,7 @@ htmx.New(btn).HxPost("/save").HxNonce(nonce)                      // hx-nonce: C
 htmx.New(btn).HxPost("/delete").HxPrompt("Are you sure?")         // hx-prompt: ask before the request, answer sent as HX-Prompt
 ```
 
-`HxHistory` and `swap.Upsert` are in `htmax.js`; with the core build they need `dist/ext/hx-history-cache.js` and `dist/ext/hx-upsert.js`.
+`HxHistoryExclude` and `swap.Upsert` are in `htmax.js`; with the core build they need `dist/ext/hx-history-cache.js` and `dist/ext/hx-upsert.js`.
 
 The `htmx-2-compat` (restore htmx 2 defaults) and `hx-alpine-compat` (run alongside Alpine.js) extensions add no per-element attribute. Load their scripts to use them.
 
@@ -314,7 +315,7 @@ htmx.HxCurrentURL(r)                // URL the request was sent from
 htmx.HxTarget(r)                    // Target element ("tagName#id")
 htmx.HxSource(r)                    // Triggering element ("tagName#id")
 htmx.HxRequestType(r)               // "full" or "partial"
-htmx.HxPrompt(r)                    // HX-Prompt header; empty unless a prompt extension sets it
+htmx.HxPrompt(r)                    // HX-Prompt header, decoded; empty unless the hx-prompt extension sets it
 htmx.HxHistoryRestoreRequest(r)     // Is this a history restore?
 htmx.HxPTag(r)                      // Polling tag the client stored (hx-ptag extension)
 htmx.HxLastEventID(r)               // Last SSE event id handled, on reconnect
@@ -337,7 +338,7 @@ htmx.HxRedirect(w, r, "/login", http.StatusSeeOther)
 htmx.HxPushURL(w, "/dashboard")
 htmx.HxReplaceURL(w, "/dashboard")
 htmx.HxLocation(w, "/page")
-htmx.HxLocationWith(w, htmx.Location{Path: "/page", Target: "#main", Replace: true})
+htmx.HxLocationWith(w, htmx.Location{Path: "/page", Target: "#main", Replace: "true"})
 htmx.HxRefresh(w)
 
 // Swap control
@@ -349,7 +350,7 @@ htmx.HxPTagResponse(w, version)  // hx-ptag extension: tag the client sends back
 
 ## Partials
 
-A response can carry content for other targets beside its main content. `Partial` builds the `<hx-partial>` block, in the template form htmx converts it to:
+A response can carry content for other targets beside its main content. `Partial` builds the `<hx-partial>` block:
 
 ```go
 htmx.Response(w, html.Fragment(
@@ -369,7 +370,7 @@ out, err := htmx.WSResponse{Content: li.Text(reply), Target: "#log", Swap: swap.
 
 ## Triggering Client Events
 
-Trigger events fire as soon as the response is received, via the `HX-Trigger` header.
+Trigger events in the `HX-Trigger` header fire on the requesting element after the swap completes, so a handler can read the new content.
 
 ```go
 // Simple event
@@ -431,7 +432,7 @@ last := r.Header.Get(htmx.LastEventIDHeader)
 mw, err := htmx.NewMultipart(w, multipart.Mixed)
 mw.WritePart(div.Text("Header"), htmx.PartTarget("#header"), htmx.PartID("1"))
 mw.WritePart(div.Text("Body"), htmx.PartTarget("#body"), htmx.PartSwap(swap.OuterHTML), htmx.PartID("2"))
-mw.WritePart(nil, htmx.PartTrigger("saved"))  // a part can carry actions alone: PartTrigger, PartRefresh, PartRedirect, PartLocation
+mw.WritePart(nil, htmx.PartTrigger("saved"))  // a part can carry actions alone; a trigger fires before the part's content swaps, and refresh, redirect and location parts are never swapped
 mw.Close()
 
 // On reconnect, resume after the last part the browser swapped.
@@ -464,19 +465,22 @@ metaTag, err := cfg.ToMetaTag()
 | `Transitions(bool)` | `false` | Use the View Transitions API |
 | `HistoryEnabled(bool)` | `true` | Track history (key `history`) |
 | `ImplicitInheritance(bool)` | `false` | Inherit attributes without the `:inherited` modifier |
-| `NoSwap([]string)` | `["204","304"]` | Status codes that must not be swapped |
+| `NoSwap([]string)` | `[204, 304]` | Status codes that must not be swapped |
 | `Mode(string)` | `"same-origin"` | Fetch mode (cross-origin behaviour) |
-| `Extensions(string)` | `""` | Allow list of extension names |
+| `Extensions(string)` | `""` | Allow list of extension registration names: `sse`, `ws`, `preload`, `download`, `upsert`, `ptag`, `browser-indicator`, `history-cache`, `alpine-compat`, `compat`, `hx-pending`, `hx-targets`, `hx-live`, `hx-head`, `hx-csp`, `hx-prompt`, `hx-multipart` |
+| `HistoryReload()` | - | Sets `history` to `"reload"`: back and forward reload from the server |
+| `SafeEval(bool)` | `false` | hx-csp runs inline code through nonced script injection instead of eval |
+| `BoostBrowserIndicator(bool)` | `false` | Native loading indicator on every boosted request |
 | `MetaCharacter(string)` | `":"` | Separator in attribute/event names |
 | `IncludeIndicatorCSS(bool)` | `true` | Inject default indicator CSS |
 | `IndicatorClass(string)` | `"htmx-indicator"` | Loading indicator class |
 | `RequestClass(string)` | `"htmx-request"` | Request in progress class |
 | `InlineScriptNonce(string)` | `""` | CSP nonce for inline scripts |
 | `DefaultFocusScroll(bool)` | `false` | Scroll focused element into view |
-| `MorphIgnore([]string)` | `["data-htmx-powered"]` | Attribute prefixes preserved during morph |
+| `MorphIgnore([]string)` | `["data-htmx-powered"]` | Attribute name prefixes preserved during morph |
 | `MorphScanLimit(int)` | `10` | Max elements scanned during morph |
-| `MorphSkip(string)` | `""` | Selector for elements to skip during morph |
-| `MorphSkipChildren(string)` | `""` | Selector whose children to skip during morph |
+| `MorphSkip(string)` | `"[hx-morph-skip]"` | Selector for elements to skip during morph; a new value replaces the default, so include it |
+| `MorphSkipChildren(string)` | `"[hx-morph-skip-children]"` | Selector whose children to skip during morph; a new value replaces the default, so include it |
 | `AllowEmptySwapAfterOOB(bool)` | `false` | Swap the empty remainder into the target when a response is out-of-band only |
 | `LogAll(bool)` | `false` | Log every htmx event to the console |
 | `Prefix(string)` | `"data-hx-"` | Extra attribute prefix read beside `hx-` |
@@ -487,6 +491,7 @@ Extension settings nest under the extension's own key, and the setters are prefi
 |--------|---------|
 | `SSE` | `SSEReconnect`, `SSEReconnectDelay`, `SSEReconnectMaxDelay`, `SSEReconnectMaxAttempts`, `SSEReconnectJitter`, `SSEPauseOnBackground`, `SSEReleaseOn(SSERelease)` |
 | `WS` | `WSReconnect`, `WSReconnectCodes`, `WSReconnectDelay`, `WSReconnectMaxDelay`, `WSReconnectMaxAttempts`, `WSReconnectJitter`, `WSPauseOnBackground`, `WSMaxOutgoingMessagesQueueSize`, `WSProtocols` |
+| `Multipart` | `MultipartReconnect`, `MultipartReconnectDelay`, `MultipartReconnectMaxDelay`, `MultipartReconnectMaxAttempts`, `MultipartReconnectJitter`, `MultipartPauseOnBackground` |
 | `Live` | `LiveInputDebounce`, `LiveBindPrefix`, `LiveUseDollar` |
 | `Preload` | `PreloadAutoBoost`, `PreloadBoostEvent`, `PreloadBoostTimeout` |
 | `HistoryCache` | `HistoryCacheEnabled` (opts in when using `htmax.js`), `HistoryCacheSize`, `HistoryCacheRefreshOnMiss`, `HistoryCacheSwapStyle` |

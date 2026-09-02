@@ -14,8 +14,10 @@ func (h *Wrapper) HxPtag(tag string) *Wrapper {
 	return h
 }
 
-// HxPTag returns the polling tag the client stored from the last response, sent as the
-// HX-PTag request header, or "" on a first poll or when the extension is not loaded.
+// HxPTag returns the polling tag the client sends as the HX-PTag request header: the value
+// of the element's hx-ptag attribute on its first poll, then the tag from the last response.
+// It is "" on a first poll of an element with no hx-ptag attribute, or when the extension is
+// not loaded.
 func HxPTag(r *http.Request) string {
 	return r.Header.Get(HXPTagHeader)
 }

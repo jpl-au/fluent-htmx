@@ -3,7 +3,10 @@ package htmx
 // HxStatus sets per-status-code swap behaviour via the hx-status:CODE attribute.
 //
 // The code may be an exact status (e.g. "404"), a single-digit wildcard ("50x"),
-// or a range wildcard ("5xx"); rules are evaluated in order of specificity.
+// or a range wildcard ("5xx"); rules are evaluated in order of specificity. The
+// noSwap config, 204 and 304 by default, is checked first, so a rule for one of
+// those codes never runs. The ":" in the attribute name is not derived from
+// Config().MetaCharacter.
 //
 // The spec uses htmx's key:value (HCON) syntax with the keys swap:, target:,
 // select:, push:, replace: and transition:. Example:

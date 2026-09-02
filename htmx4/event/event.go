@@ -5,8 +5,9 @@
 // Events follow the htmx:phase:action[:sub-action] scheme; most errors are consolidated
 // into htmx:error. The constants below hold the full dispatched names. The htmx 2 event
 // names that the htmx-2-compat extension dispatches alongside these are not listed; the
-// htmx2 package holds them. The htmx:scope and htmx:process:* hooks are extension callbacks,
-// not DOM events, so they are not listed either.
+// htmx2 package holds them. The extension callbacks that never reach the DOM (htmx:scope,
+// htmx:process:*, htmx:before:morph:attr, htmx:before:morph:node and
+// htmx:after:implicitInheritance) are not listed either.
 package event
 
 // Lifecycle events.
@@ -28,14 +29,6 @@ const (
 	AfterSettle    = "htmx:after:settle"    // After the settle phase
 	BeforeCleanup  = "htmx:before:cleanup"  // Before an element is cleaned up
 	AfterCleanup   = "htmx:after:cleanup"   // After an element is cleaned up
-
-	AfterImplicitInheritance = "htmx:after:implicitInheritance" // After attributes are implicitly inherited to a node
-)
-
-// Morph events, fired while the idiomorph swap styles reconcile the DOM.
-const (
-	BeforeMorphAttr = "htmx:before:morph:attr" // Before a morph updates an attribute (cancellable)
-	BeforeMorphNode = "htmx:before:morph:node" // Before a morph updates a node (cancellable)
 )
 
 // History events.
@@ -72,8 +65,8 @@ const (
 	DownloadComplete = "htmx:download:complete" // A file download finishes
 )
 
-// Server-Sent Events extension events (hx-sse). The before events are cancellable, and a
-// listener may call detail.waitUntil(promise) to delay handling.
+// Server-Sent Events extension events (hx-sse). The before events are cancellable; the
+// before-message event also lets a listener call detail.waitUntil(promise) to delay handling.
 const (
 	SSEBeforeConnection = "htmx:sse:before:connection" // Before an SSE connection opens or reconnects
 	SSEAfterConnection  = "htmx:sse:after:connection"  // After an SSE connection opens
@@ -83,8 +76,8 @@ const (
 	SSEError            = "htmx:sse:error"             // An SSE connection error
 )
 
-// WebSocket extension events (hx-ws). The before events are cancellable, and a listener may
-// call detail.waitUntil(promise) to delay the message.
+// WebSocket extension events (hx-ws). The before events are cancellable; the two
+// before-message events also let a listener call detail.waitUntil(promise) to delay the message.
 const (
 	WSBeforeConnection      = "htmx:ws:before:connection"       // Before a WebSocket connection opens or reconnects
 	WSAfterConnection       = "htmx:ws:after:connection"        // After a WebSocket connection opens
@@ -116,13 +109,13 @@ const (
 
 // CSP extension events (hx-nonce).
 const (
-	SecurityStrip     = "htmx:security:strip"     // An inline handler was stripped to satisfy the policy
+	SecurityStrip     = "htmx:security:strip"     // Every hx-* attribute was stripped from an element with a missing or wrong nonce
 	SecurityViolation = "htmx:security:violation" // A content-security-policy violation was detected
 )
 
 // Prompt extension events (hx-prompt).
 const (
-	Prompt = "htmx:prompt" // The prompt extension asks the user for input before a request
+	Prompt = "htmx:prompt" // After the prompt dialog returns an answer and before the request is sent; a listener can cancel the request
 )
 
 // Multipart streaming extension events (hx-multipart).

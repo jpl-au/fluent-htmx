@@ -56,7 +56,7 @@ htmx.New(div).HxConfirm("Sure?", htmx.Inherited)          // hx-confirm:inherite
 htmx.New(form).HxInclude("#fields", htmx.InheritedAppend) // hx-include:inherited:append
 ```
 
-Inheritable setters: `HxTarget`, `HxSwap`, `HxTrigger`, `HxBoost`, `HxConfirm`, `HxVals`, `HxHeaders`, `HxIndicator`, `HxPushURL`, `HxReplaceURL`, `HxSelect`, `HxSelectOOB`, `HxInclude`, `HxSync`, `HxEncoding`, `HxValidate`, `HxDisable`, `HxConfig`, `HxStatus`. Only `HxPreserve`, `HxSwapOOB`, `HxHistoryElt` and `HxIgnore` take no modifier - htmx reads those by presence or by id on a single element. The request verbs, `HxAction` and `HxMethod` also omit the modifier (an inherited verb cannot by itself fire a request).
+Inheritable setters: `HxTarget`, `HxSwap`, `HxTrigger`, `HxBoost`, `HxBoostConfig`, `HxConfirm`, `HxVals`, `HxHeaders`, `HxIndicator`, `HxPushURL`, `HxReplaceURL`, `HxSelect`, `HxSelectOOB`, `HxInclude`, `HxSync`, `HxEncoding`, `HxValidate`, `HxDisable`, `HxConfig`, `HxStatus`. Only `HxPreserve`, `HxSwapOOB`, `HxHistoryElt` and `HxIgnore` take no modifier - htmx reads those by presence or by id on a single element. The request verbs, `HxAction` and `HxMethod` also omit the modifier (an inherited verb cannot by itself fire a request). `HxMorphSkip`, `HxMorphSkipChildren` and `HxOn` take none.
 
 ## Sub-Packages
 
@@ -161,6 +161,7 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 |--------|-----------|
 | `HxTrigger(events string, mods ...Mod)` | `hx-trigger` |
 | `HxOn(event string, handler string)` | `hx-on:event` (single colon) |
+| `HxOnExtended(spec string)` | `hx-on` extended form `"event -> code; ..."` with the hx-trigger grammar; the only way to bind `htmx:before:viewTransition` and `htmx:after:viewTransition` |
 
 ### Boolean Attributes
 
@@ -184,8 +185,8 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 
 | Method | Attribute |
 |--------|-----------|
-| `HxVals(json string, mods ...Mod)` | `hx-vals` |
-| `HxHeaders(json string, mods ...Mod)` | `hx-headers` |
+| `HxVals(values string, mods ...Mod)` | `hx-vals` (JSON or `key:value`) |
+| `HxHeaders(headers string, mods ...Mod)` | `hx-headers` (JSON or `key:value`) |
 | `HxInclude(selector string, mods ...Mod)` | `hx-include` |
 | `HxEncoding(encoding string, mods ...Mod)` | `hx-encoding` |
 | `HxConfirm(message string, mods ...Mod)` | `hx-confirm` |
@@ -209,9 +210,9 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 | `WSSend()` | `hx-ws:send` |
 | `SSEConnect(url string)` | `hx-sse:connect` |
 | `SSEClose(eventName string)` | `hx-sse:close` |
-| `Preload(trigger string)` | `hx-preload` |
+| `Preload(trigger string, mods ...Mod)` | `hx-preload` |
 | `HxPending(selector string)` | `hx-pending` |
-| `HxTargets(selector string)` | `hx-targets` |
+| `HxTargets(selector string, mods ...Mod)` | `hx-targets` |
 | `HxLive(expression string)` | `hx-live` (run for effect) |
 | `HxLiveText(expression string)` | `hx-live:text` |
 | `HxLiveHTML(expression string)` | `hx-live:html` |
@@ -222,11 +223,11 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 | `HxBrowserIndicator(enabled bool)` | `hx-browser-indicator` |
 | `HxHead(mode string)` | `hx-head` (separate script dist/ext/hx-head.js) |
 | `HxPtag(tag string)` | `hx-ptag` (separate script dist/ext/hx-ptag.js) |
-| `HxHistory(enabled bool)` | `hx-history` (bundled; off until config enables it) |
+| `HxHistoryExclude()` | `hx-history="false"` (history-cache is bundled; off until `HistoryCacheEnabled(true)`) |
 | `HxNonce(nonce string)` | `hx-nonce` (separate script dist/ext/hx-csp.js) |
-| `HxPrompt(question string)` | `hx-prompt` (separate script dist/ext/hx-prompt.js) |
+| `HxPrompt(question string, mods ...Mod)` | `hx-prompt` (separate script dist/ext/hx-prompt.js) |
 
-htmx 4 ships two builds. `htmax.js` bundles 11 extensions (ws, sse, preload, pending, targets, live, browser-indicator, download, history-cache, upsert, alpine-compat), so their methods work once it is loaded. The core `htmx.js` build includes none of them; load each extension's `dist/ext/<name>.js` script yourself. `HxHead`, `HxPtag`, `HxNonce`, `HxPrompt` and `MultipartConnect` are never bundled and always need their own script. htmx 4 has no `hx-ext`: loading the script, or the bundle, activates the extension. A method whose extension is absent is an inert no-op, so the attribute is written but ignored. Downloads have no client attribute; use `swap.Download` or the `HxDownload(w, url)` server helper. The `htmx-2-compat` and `hx-alpine-compat` extensions add no per-element attribute.
+htmx 4 ships two builds. `htmax.js` bundles 11 extensions (registered as `sse`, `ws`, `preload`, `hx-pending`, `hx-targets`, `hx-live`, `browser-indicator`, `download`, `history-cache`, `upsert`, `alpine-compat`), so their methods work once it is loaded. The core `htmx.js` build includes none of them; load each extension's `dist/ext/<name>.js` script yourself. `HxHead`, `HxPtag`, `HxNonce`, `HxPrompt` and `MultipartConnect` are never bundled and always need their own script. htmx 4 has no `hx-ext`: loading the script, or the bundle, activates the extension. A method whose extension is absent is an inert no-op, so the attribute is written but ignored. Downloads have no client attribute; use `swap.Download` or the `HxDownload(w, url)` server helper. The `htmx-2-compat` and `hx-alpine-compat` extensions add no per-element attribute.
 
 ```go
 // Bundled in htmax.js, work with no extra setup:
@@ -279,15 +280,15 @@ htmx.HxDownload(w, "/files/report.pdf")
 | `HxRetarget(w, selector)` | Override swap target |
 | `HxReswap(w, strategy)` | Override swap strategy |
 | `HxReselect(w, selector)` | Override response selection |
-| `HxDownload(w, url)` | Stream a file download (download extension reads HX-Download) |
-| `HxLocationWith(w, Location)` | HX-Location as an object: path plus target, swap, select, values, headers, `Replace` or `NoPush`; returns `error` |
+| `HxDownload(w, url)` | Fetch a separate URL as a file download while the response body is swapped as usual |
+| `HxLocationWith(w, Location)` | HX-Location as an object: path plus source, target, swap, select, values, headers, and `Push` / `Replace` taking `"true"`, `"false"` or a URL; returns `error` |
 | `HxPTagResponse(w, tag)` | Set HX-PTag for the hx-ptag extension to store |
 
 ### Partials and WebSocket Messages
 
 | Function | Returns |
 |----------|---------|
-| `Partial(target string, nodes ...node.Node)` | `*Wrapper` - an `<hx-partial>` block in its template form, `<template hx type="partial" hx-target="...">`; chain `HxSwap` for the swap style |
+| `Partial(target string, nodes ...node.Node)` | `*Wrapper` - an `<hx-partial hx-target="...">` block; chain `HxSwap` for the swap style |
 | `ParseWSMessage(data []byte)` | `(*WSMessage, error)` - splits an `hx-ws:send` frame into `Values` and `Headers` |
 | `WSResponse{Content, Target, Swap, Select}.JSON()` | `([]byte, error)` - the JSON frame that swaps content with overrides; plain HTML frames swap with the element's own attributes |
 
@@ -314,9 +315,9 @@ htmx.Response(w, div.Text("content"), http.StatusOK)
 | `NewSSE(w http.ResponseWriter)` | `(*SSEWriter, error)` - initialises SSE stream, sets headers |
 | `(*SSEWriter).Swap(n node.Node)` | `error` - sends an unnamed message, which the client swaps into the connecting element's target |
 | `(*SSEWriter).SwapBytes(data []byte)` | `error` - Swap for a non-fluent payload |
-| `(*SSEWriter).Send(event string, n node.Node)` | `error` - sends a named event, which the client dispatches as a DOM event and does not swap; a nil node sends an empty data line |
+| `(*SSEWriter).Send(event string, n node.Node)` | `error` - sends a named event, which the client dispatches as a DOM event and does not swap; a nil node sends the event line alone |
 | `(*SSEWriter).SendBytes(event string, data []byte)` | `error` - escape hatch for non-fluent payloads; sends raw bytes as the event data, one data line per physical line, flushes |
-| `(*SSEWriter).SendEvent(e Event)` | `error` - sends an event with name, id, retry and data; the browser returns the id as `Last-Event-ID` on reconnect (`htmx.LastEventIDHeader`) |
+| `(*SSEWriter).SendEvent(e Event)` | `error` - sends an event with name, id, retry and data; the client returns the id as `Last-Event-ID` on reconnect (`htmx.LastEventIDHeader`); an id-only event moves that cursor without dispatching |
 | `(*SSEWriter).Release()` | `error` - sends `hx:release`, completing the request that opened the stream while the stream stays open |
 
 ```go
@@ -338,7 +339,8 @@ sse.Release()  // complete the opening request, keep streaming
 | `(*MultipartWriter).Close()` | `error` - writes the closing boundary |
 | `PartTarget(selector)`, `PartSwap(strategy)`, `PartSelect(selector)`, `PartTrigger(events)` | `PartOption` - the part's HX-Retarget, HX-Reswap, HX-Reselect and HX-Trigger headers |
 | `PartID(id)` | `PartOption` - the part's HX-Part-ID; the client returns the last swapped id as `HX-Last-Part-ID` (`htmx.HXLastPartIDHeader`) on reconnect |
-| `PartRefresh()`, `PartRedirect(url)`, `PartLocation(url)` | `PartOption` - the part's HX-Refresh, HX-Redirect and HX-Location, run once the part is handled |
+| `PartRefresh()`, `PartRedirect(url)`, `PartLocation(url)` | `PartOption` - the part's HX-Refresh, HX-Redirect and HX-Location; such a part is never swapped, so send it with a nil node. A `PartTrigger` fires before the part's content swaps |
+| `PartPushURL(url)`, `PartReplaceURL(url)` | `PartOption` - the part's HX-Push-Url and HX-Replace-Url, applied when the part swaps; `"true"`, `"false"` or a URL, as for `HxPushURL` |
 
 The client needs `dist/ext/hx-multipart.js`. A one-shot response needs no attribute; `MultipartConnect(url)` opens a reconnecting stream and `MultipartClose(trigger)` closes it.
 
@@ -394,9 +396,12 @@ jsonStr, err := cfg.ToJSON()
 | `Transitions(bool)` | `false` | `transitions` |
 | `HistoryEnabled(bool)` | `true` | `history` |
 | `ImplicitInheritance(bool)` | `false` | `implicitInheritance` |
-| `NoSwap([]string)` | `["204","304"]` | `noSwap` |
+| `NoSwap([]string)` | `[204, 304]` | `noSwap` |
 | `Mode(string)` | `"same-origin"` | `mode` |
-| `Extensions(string)` | `""` | `extensions` |
+| `Extensions(string)` | `""` | `extensions` (registration names: `sse`, `ws`, `preload`, `download`, `upsert`, `ptag`, `browser-indicator`, `history-cache`, `alpine-compat`, `compat`, `hx-pending`, `hx-targets`, `hx-live`, `hx-head`, `hx-csp`, `hx-prompt`, `hx-multipart`) |
+| `HistoryReload()` | - | `history: "reload"` |
+| `SafeEval(bool)` | `false` | `safeEval` (hx-csp) |
+| `BoostBrowserIndicator(bool)` | `false` | `boostBrowserIndicator` (browser-indicator) |
 | `MetaCharacter(string)` | `":"` | `metaCharacter` |
 | `IncludeIndicatorCSS(bool)` | `true` | `includeIndicatorCSS` |
 | `IndicatorClass(string)` | `"htmx-indicator"` | `indicatorClass` |
@@ -405,13 +410,14 @@ jsonStr, err := cfg.ToJSON()
 | `DefaultFocusScroll(bool)` | `false` | `defaultFocusScroll` |
 | `MorphIgnore([]string)` | `["data-htmx-powered"]` | `morphIgnore` |
 | `MorphScanLimit(int)` | `10` | `morphScanLimit` |
-| `MorphSkip(string)` | `""` | `morphSkip` |
-| `MorphSkipChildren(string)` | `""` | `morphSkipChildren` |
+| `MorphSkip(string)` | `"[hx-morph-skip]"` | `morphSkip`; a new value replaces the default |
+| `MorphSkipChildren(string)` | `"[hx-morph-skip-children]"` | `morphSkipChildren`; a new value replaces the default |
 | `AllowEmptySwapAfterOOB(bool)` | `false` | `allowEmptySwapAfterOOB` |
 | `LogAll(bool)` | `false` | `logAll` |
 | `Prefix(string)` | `"data-hx-"` | `prefix` |
 | `SSEReconnect(bool)`, `SSEReconnectDelay(ms)`, `SSEReconnectMaxDelay(ms)`, `SSEReconnectMaxAttempts(int)`, `SSEReconnectJitter(float64)`, `SSEPauseOnBackground(bool)`, `SSEReleaseOn(SSERelease)` | extension defaults | `sse.*` |
 | `WSReconnect(bool)`, `WSReconnectCodes([]int)`, `WSReconnectDelay(ms)`, `WSReconnectMaxDelay(ms)`, `WSReconnectMaxAttempts(int)`, `WSReconnectJitter(float64)`, `WSPauseOnBackground(bool)`, `WSMaxOutgoingMessagesQueueSize(int)`, `WSProtocols([]string)` | extension defaults | `ws.*` |
+| `MultipartReconnect(bool)`, `MultipartReconnectDelay(ms)`, `MultipartReconnectMaxDelay(ms)`, `MultipartReconnectMaxAttempts(int)`, `MultipartReconnectJitter(float64)`, `MultipartPauseOnBackground(bool)` | extension defaults | `multipart.*` |
 | `LiveInputDebounce(ms)`, `LiveBindPrefix(string)`, `LiveUseDollar(bool)` | `100`, `":"`, `false` | `live.*` |
 | `PreloadAutoBoost(bool)`, `PreloadBoostEvent(string)`, `PreloadBoostTimeout(ms)` | `true`, `"mousedown"`, `5000` | `preload.*` |
 | `HistoryCacheEnabled(bool)`, `HistoryCacheSize(int)`, `HistoryCacheRefreshOnMiss(bool)`, `HistoryCacheSwapStyle(swap.Strategy)` | off in `htmax.js`, `10`, `false`, `outerSync` | `historyCache.*` |

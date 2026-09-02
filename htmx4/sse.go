@@ -16,8 +16,9 @@ const (
 	SSEReleaseEnd       SSERelease = "end"       // When the stream ends; the default for a one-shot response
 )
 
-// SSEConnect establishes a Server-Sent Events connection to the given URL.
-// The connection remains open and automatically reconnects on failure.
+// SSEConnect establishes a Server-Sent Events connection to the given URL. The connection
+// reconnects whenever the stream ends, whether from an error or the server closing it,
+// until the element is removed or hx-sse:close matches.
 func (h *Wrapper) SSEConnect(url string) *Wrapper {
 	h.element.SetAttribute("hx-sse:connect", url)
 

@@ -9,7 +9,7 @@ package htmx
 //
 // A handful of setters take no modifier because htmx reads them by presence or by id on a
 // single element rather than resolving them down the tree: HxPreserve, HxSwapOOB,
-// HxHistoryElt and HxIgnore. Everything else - including HxConfig, HxStatus and
+// HxHistoryElt, HxIgnore, HxMorphSkip, HxMorphSkipChildren and HxOn. Everything else - including HxConfig, HxStatus and
 // HxSelectOOB - is resolved with inheritance and accepts a modifier. The request verbs,
 // HxAction and HxMethod technically inherit too, but the setters omit the modifier because
 // an inherited verb cannot by itself initiate a request. For anything not covered by a
@@ -25,10 +25,11 @@ const (
 	// by appending :inherited to the attribute name (e.g. hx-confirm:inherited).
 	Inherited Mod = ":inherited"
 
-	// InheritedAppend inherits the attribute like Inherited, but where a descendant also
-	// sets the same attribute its value is appended to the inherited value instead of
-	// replacing it (e.g. hx-include:inherited:append). Use it for the value-merging
-	// attributes such as HxInclude, HxHeaders and HxVals.
+	// InheritedAppend appends this element's value to the value inherited from an ancestor
+	// that carries Inherited or InheritedAppend, and passes the combined value on to its own
+	// descendants (e.g. hx-include:inherited:append). A descendant that sets the plain
+	// attribute still replaces; it needs Append or InheritedAppend to append. Use it for the
+	// value-merging attributes such as HxInclude, HxHeaders and HxVals.
 	InheritedAppend Mod = ":inherited:append"
 
 	// Append makes a descendant append to an ancestor's inherited value without itself

@@ -90,6 +90,10 @@ func TestClientSetters(t *testing.T) {
 		// Additional attributes.
 		{"HxIgnore", func(w *Wrapper) { w.HxIgnore() }, `hx-ignore="true"`},
 		{"HxBoostConfig", func(w *Wrapper) { w.HxBoostConfig("target:#main") }, `hx-boost="target:#main"`},
+		{"HxOnExtended", func(w *Wrapper) { w.HxOnExtended("htmx:before:viewTransition -> go()") }, `hx-on="htmx:before:viewTransition -&gt; go()"`},
+		{"Preload inherited", func(w *Wrapper) { w.Preload("mouseover", Inherited) }, `hx-preload:inherited="mouseover"`},
+		{"HxTargets inherited", func(w *Wrapper) { w.HxTargets(".card", Inherited) }, `hx-targets:inherited=".card"`},
+		{"HxPrompt inherited", func(w *Wrapper) { w.HxPrompt("Reason?", Inherited) }, `hx-prompt:inherited="Reason?"`},
 		{"HxMorphSkip", func(w *Wrapper) { w.HxMorphSkip() }, `hx-morph-skip="true"`},
 		{"HxMorphSkipChildren", func(w *Wrapper) { w.HxMorphSkipChildren() }, `hx-morph-skip-children="true"`},
 		{"HxDisable", func(w *Wrapper) { w.HxDisable("#submit-btn") }, `hx-disable="#submit-btn"`},
@@ -113,7 +117,7 @@ func TestClientSetters(t *testing.T) {
 		{"HxLiveAttr", func(w *Wrapper) { w.HxLiveAttr("disabled", "!ok") }, `hx-live:disabled="!ok"`},
 		{"HxBrowserIndicator", func(w *Wrapper) { w.HxBrowserIndicator(true) }, `hx-browser-indicator="true"`},
 		{"HxPtag", func(w *Wrapper) { w.HxPtag("v42") }, `hx-ptag="v42"`},
-		{"HxHistory", func(w *Wrapper) { w.HxHistory(false) }, `hx-history="false"`},
+		{"HxHistoryExclude", func(w *Wrapper) { w.HxHistoryExclude() }, `hx-history="false"`},
 		{"HxNonce", func(w *Wrapper) { w.HxNonce("abc123") }, `hx-nonce="abc123"`},
 		{"HxPrompt", func(w *Wrapper) { w.HxPrompt("Enter name") }, `hx-prompt="Enter name"`},
 	}

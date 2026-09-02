@@ -1,18 +1,15 @@
 package htmx
 
-// History-cache extension (hx-history). Not bundled in htmax.js - load it as a separate script
-// (dist/ext/hx-history-cache.js). Global cache options live on htmx.config.historyCache.
+// History-cache extension, registered as history-cache. It is bundled in htmax.js but starts
+// disabled there; Config().HistoryCacheEnabled(true) turns it on. With the core htmx.js build,
+// include dist/ext/hx-history-cache.js. Cache options live under Config().HistoryCache*.
 
-// HxHistory controls whether the element's page is stored in the history cache. Pass false to
-// keep a sensitive page out of the cache (emitting hx-history="false"); the default is to
-// cache. Distinct from HxHistoryElt, which names the snapshot element for restoration.
-func (h *Wrapper) HxHistory(enabled bool) *Wrapper {
-	value := boolFalse
-	if enabled {
-		value = boolTrue
-	}
-
-	h.element.SetAttribute("hx-history", value)
+// HxHistoryExclude keeps the element's page out of the history cache, by writing
+// hx-history="false". The extension reads only that value, and every page is cached unless
+// one element on it carries the attribute. Use it on a page holding sensitive content.
+// Distinct from HxHistoryElt, which names the snapshot element for restoration.
+func (h *Wrapper) HxHistoryExclude() *Wrapper {
+	h.element.SetAttribute("hx-history", boolFalse)
 
 	return h
 }

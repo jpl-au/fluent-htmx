@@ -9,7 +9,7 @@ import (
 
 func TestPartial(t *testing.T) {
 	got := string(Partial("#count", span.Text("3")).HxSwap(swap.OuterHTML).RenderBytes())
-	want := `<template hx="" type="partial" hx-target="#count" hx-swap="outerHTML"><span>3</span></template>`
+	want := `<hx-partial hx-target="#count" hx-swap="outerHTML"><span>3</span></hx-partial>`
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}

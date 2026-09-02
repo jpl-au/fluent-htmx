@@ -89,6 +89,8 @@ func TestConfigExtensionGroups(t *testing.T) {
 		LiveInputDebounce(50).
 		PreloadBoostTimeout(2000).
 		HistoryCacheEnabled(true).HistoryCacheSwapStyle(swap.OuterSync).
+		MultipartReconnect(false).MultipartReconnectDelay(750).
+		HistoryReload().SafeEval(true).BoostBrowserIndicator(true).
 		CompatUseExplicitInheritance(true).
 		LogAll(true).Prefix("data-hx-")
 
@@ -103,6 +105,10 @@ func TestConfigExtensionGroups(t *testing.T) {
 		`"live":{"inputDebounce":50}`,
 		`"preload":{"boostTimeout":2000}`,
 		`"historyCache":{"disable":false,"swapStyle":"outerSync"}`,
+		`"multipart":{"reconnect":false,"reconnectDelay":750}`,
+		`"history":"reload"`,
+		`"safeEval":true`,
+		`"boostBrowserIndicator":true`,
 		`"compat":{"useExplicitInheritace":true}`,
 		`"logAll":true`,
 		`"prefix":"data-hx-"`,
@@ -110,5 +116,18 @@ func TestConfigExtensionGroups(t *testing.T) {
 		if !strings.Contains(got, frag) {
 			t.Errorf("ToJSON() missing %s in %s", frag, got)
 		}
+	}
+}
+
+// A single quote inside a value would end the content attribute unless escaped.
+func TestConfigToMetaTagEscapesQuotes(t *testing.T) {
+	tag, err := Config().MorphSkip("[data-x='y'] & more").ToMetaTag()
+	if err != nil {
+		t.Fatalf("ToMetaTag() returned error: %v", err)
+	}
+
+	want := `<meta name="htmx-config" content='{"morphSkip":"[data-x=&#39;y&#39;] \u0026 more"}'>`
+	if tag != want {
+		t.Errorf("tag = %s, want %s", tag, want)
 	}
 }

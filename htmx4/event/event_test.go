@@ -15,8 +15,6 @@ var all = map[string]string{
 	"BeforeResponse": BeforeResponse, "BeforeSwap": BeforeSwap, "AfterSwap": AfterSwap,
 	"FinallySwap": FinallySwap, "BeforeSettle": BeforeSettle, "AfterSettle": AfterSettle,
 	"BeforeCleanup": BeforeCleanup, "AfterCleanup": AfterCleanup,
-	"AfterImplicitInheritance": AfterImplicitInheritance,
-	"BeforeMorphAttr":          BeforeMorphAttr, "BeforeMorphNode": BeforeMorphNode,
 	"BeforeHistoryUpdate": BeforeHistoryUpdate, "AfterHistoryUpdate": AfterHistoryUpdate,
 	"BeforeHistoryRestore": BeforeHistoryRestore, "AfterHistoryPush": AfterHistoryPush,
 	"AfterHistoryReplace":  AfterHistoryReplace,
@@ -46,9 +44,8 @@ var all = map[string]string{
 // unlike htmx 2, dispatches no lowercase duplicate. Kept as an explicit set so the test below can
 // hold every other event to the hx-on-safe (lowercase) rule.
 var hxOnUnsafe = map[string]bool{
-	"BeforeViewTransition":     true,
-	"AfterViewTransition":      true,
-	"AfterImplicitInheritance": true,
+	"BeforeViewTransition": true,
+	"AfterViewTransition":  true,
 }
 
 // TestEventNamesCarryHtmxPrefix asserts every constant is the full dispatched name. A bare suffix

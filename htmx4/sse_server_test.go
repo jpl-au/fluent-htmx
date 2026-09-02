@@ -84,7 +84,7 @@ func TestSSESendNil(t *testing.T) {
 		t.Fatalf("Send() returned error: %v", err)
 	}
 
-	want := "event: done\ndata: \n\n"
+	want := "event: done\n\n"
 	if got := w.Body.String(); got != want {
 		t.Errorf("body = %q, want %q", got, want)
 	}
@@ -166,7 +166,7 @@ func TestSSESendBytesNil(t *testing.T) {
 		t.Fatalf("SendBytes() returned error: %v", err)
 	}
 
-	want := "event: done\ndata: \n\n"
+	want := "event: done\n\n"
 	if got := w.Body.String(); got != want {
 		t.Errorf("body = %q, want %q", got, want)
 	}
@@ -190,8 +190,24 @@ func TestSSESendEvent(t *testing.T) {
 	}
 }
 
-// An unnamed event with no data still ends with one empty data line, or the browser
-// would never deliver it.
+// A block with only an id updates the client's Last-Event-ID without dispatching a message,
+// and a fully empty event still sends one empty data line so the client delivers it.
+func TestSSESendEventIDOnly(t *testing.T) {
+	w := httptest.NewRecorder()
+	sse, err := NewSSE(w)
+	if err != nil {
+		t.Fatalf("NewSSE() returned error: %v", err)
+	}
+
+	if err := sse.SendEvent(Event{ID: "42"}); err != nil {
+		t.Fatalf("SendEvent() returned error: %v", err)
+	}
+
+	if got, want := w.Body.String(), "id: 42\n\n"; got != want {
+		t.Errorf("body = %q, want %q", got, want)
+	}
+}
+
 func TestSSESendEventEmpty(t *testing.T) {
 	w := httptest.NewRecorder()
 	sse, err := NewSSE(w)
@@ -219,7 +235,7 @@ func TestSSERelease(t *testing.T) {
 		t.Fatalf("Release() returned error: %v", err)
 	}
 
-	if got, want := w.Body.String(), "event: hx:release\ndata: \n\n"; got != want {
+	if got, want := w.Body.String(), "event: hx:release\n\n"; got != want {
 		t.Errorf("body = %q, want %q", got, want)
 	}
 }

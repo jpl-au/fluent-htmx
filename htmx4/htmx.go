@@ -7,7 +7,7 @@
 //   - server.go: server-side helpers for handling HTMX requests and responses
 //   - partial.go: the <hx-partial> block for routing response content to its own target
 //   - config.go: HTMX configuration builder for generating htmx.config settings
-//   - config_extensions.go: the extension settings under htmx.config (sse, ws, live, preload, history cache, compat)
+//   - config_extensions.go: the extension settings under htmx.config (sse, ws, multipart, live, preload, history cache, compat)
 //
 // Extension support is provided in separate files. These are bundled into the htmax.js build:
 //   - ws.go: WebSocket extension (hx-ws:connect, hx-ws:send)
@@ -29,7 +29,8 @@
 //   - csp.go: CSP nonce extension (hx-nonce)
 //   - head_support.go: hx-head extension (hx-head)
 //   - prompt.go: Prompt extension (hx-prompt)
-//   - multipart.go: Multipart streaming extension (hx-multipart:connect, MultipartWriter)
+//   - multipart.go: Multipart streaming extension (hx-multipart:connect, hx-multipart:close)
+//   - multipart_server.go: the server-side multipart writer (MultipartWriter, PartOption and the Part* options)
 //
 // Two builds, and what happens if an extension is not loaded. htmx 4 ships two scripts:
 // htmax.js bundles ws, sse, preload, pending, targets, live, browser-indicator, download,
@@ -41,15 +42,16 @@
 // An extension method only writes an attribute (or, server-side, a response header) - it never
 // loads any JavaScript. If the matching extension is not present, htmx does not recognise the
 // attribute and ignores it: the element still renders, core htmx still works, and the
-// extension's behaviour simply does not happen. So using an extension method without its
-// extension is a harmless no-op, never an error - the cost is silent, which is why each
-// extension method's doc names the script it needs. (Unlike htmx 2, htmx 4 does not need hx-ext
+// extension's behaviour simply does not happen. So using an extension attribute without its
+// extension is a silent no-op, which is why each extension method's doc names the script it
+// needs. The exception is a swap style: hx-swap="download" or "upsert" with the extension
+// absent throws "Unknown swap style", fires htmx:error, and swaps nothing. (Unlike htmx 2, htmx 4 does not need hx-ext
 // to switch an included extension on; the Config().Extensions allowlist only restricts which run.)
 //
 // Attribute inheritance: by default an attribute applies only to the element it is set on.
 // Inheritable setters take an optional modifier - pass htmx.Inherited to inherit the
-// attribute to descendant elements, or htmx.InheritedAppend so a descendant appends to the
-// inherited value instead of replacing it. See [Mod].
+// attribute to descendant elements, or htmx.InheritedAppend to append this element's value
+// to an inherited one and pass the combined value on. See [Mod].
 //
 // Usage:
 //
@@ -189,7 +191,9 @@ func (h *Wrapper) HxAction(url string) *Wrapper {
 }
 
 // HxMethod specifies the HTTP method for a request whose URL is set with HxAction. Any
-// method name is accepted, including QUERY. A verb attribute such as HxPost wins over it.
+// method name is accepted, including QUERY. With hx-action set, verb attributes such as
+// HxPost are ignored and the method comes from here, then the form's method, then GET.
+// Without hx-action, a verb attribute supplies both URL and method and this is ignored.
 // Example: HxMethod("post").
 func (h *Wrapper) HxMethod(method string) *Wrapper {
 	h.element.SetAttribute("hx-method", method)
@@ -238,9 +242,10 @@ func (h *Wrapper) HxBoost(enabled bool, mods ...Mod) *Wrapper {
 	return h
 }
 
-// HxBoostConfig boosts the element and overrides request settings for the boosted
-// requests. The value is an hx-config style string, so a boosted form can swap into a
-// region rather than the body. Example: HxBoostConfig("target:#main swap:innerHTML").
+// HxBoostConfig boosts the element and overrides how its boosted requests are applied.
+// The value is a key:value string merged into each request context, so target, swap,
+// select, selectOOB, push, replace, confirm and transition all apply, and a boosted form
+// can swap into a region rather than the body. Example: HxBoostConfig("target:#main swap:innerHTML").
 func (h *Wrapper) HxBoostConfig(config string, mods ...Mod) *Wrapper {
 	h.element.SetAttribute(modifiedKey("hx-boost", mods), config)
 
@@ -255,16 +260,16 @@ func (h *Wrapper) HxConfirm(message string, mods ...Mod) *Wrapper {
 	return h
 }
 
-// HxVals adds extra JSON-encoded values to the request parameters.
-// Example: `{"key": "value"}`. For computed values use a "js:" prefix.
+// HxVals adds extra values to the request parameters, as JSON or as htmx's key:value
+// form. Example: `{"key": "value"}` or `key:value`. For computed values use a "js:" prefix.
 func (h *Wrapper) HxVals(values string, mods ...Mod) *Wrapper {
 	h.element.SetAttribute(modifiedKey("hx-vals", mods), values)
 
 	return h
 }
 
-// HxHeaders adds extra JSON-encoded headers to the AJAX request.
-// Example: `{"X-Custom-Header": "value"}`.
+// HxHeaders adds extra headers to the AJAX request, as JSON or as htmx's key:value form.
+// Example: `{"X-Custom-Header": "value"}` or `X-Custom-Header:value`.
 func (h *Wrapper) HxHeaders(headers string, mods ...Mod) *Wrapper {
 	h.element.SetAttribute(modifiedKey("hx-headers", mods), headers)
 
@@ -309,9 +314,11 @@ func (h *Wrapper) HxSelectOOB(selector string, mods ...Mod) *Wrapper {
 	return h
 }
 
-// HxSwapOOB marks response content for out-of-band swapping.
-// The element is swapped into the DOM by matching its ID, regardless of the primary swap target.
-// Typically set on server-rendered response fragments rather than request elements.
+// HxSwapOOB marks response content for out-of-band swapping. The value is "true" to replace
+// the page element with the same id, a swap style to apply against that element, or a swap
+// style followed by a colon and a CSS selector to swap into every match. Styles other than
+// outerHTML strip the element's own tag and swap its children. Set on server-rendered
+// response fragments, not request elements.
 func (h *Wrapper) HxSwapOOB(value string) *Wrapper {
 	h.element.SetAttribute("hx-swap-oob", value)
 
@@ -319,7 +326,8 @@ func (h *Wrapper) HxSwapOOB(value string) *Wrapper {
 }
 
 // HxReplaceURL replaces the current URL in the browser location bar without adding a history entry.
-// Unlike HxPushURL, the user cannot navigate back to the previous URL.
+// Unlike HxPushURL, the user cannot navigate back to the previous URL. The value "true" uses
+// the request's own URL and "false" stops a replace the element asked for.
 func (h *Wrapper) HxReplaceURL(url string, mods ...Mod) *Wrapper {
 	h.element.SetAttribute(modifiedKey("hx-replace-url", mods), url)
 
@@ -336,7 +344,8 @@ func (h *Wrapper) HxInclude(selector string, mods ...Mod) *Wrapper {
 
 // HxSync coordinates requests between this element and another element matched by the selector.
 // Prevents race conditions when multiple elements can trigger overlapping requests.
-// Request queuing is also expressed here, via a queue strategy.
+// Request queuing is also expressed here, via a queue strategy. Without the attribute htmx
+// uses sync.QueueFirst.
 //
 //	htmx.New(el).HxSync(sync.Drop)
 //	htmx.New(el).HxSync(sync.Custom("this:queue all"))
@@ -368,7 +377,8 @@ func (h *Wrapper) HxEncoding(encoding string, mods ...Mod) *Wrapper {
 
 // HxPreserve keeps the element unchanged during swaps by matching its ID.
 // Useful for persistent elements like video players or iframes that should
-// survive content updates around them.
+// survive content updates around them. htmx reads the attribute from the response, so it
+// goes on the server-rendered replacement; the element on the page needs only the same id.
 //
 // htmx selects preserved elements by the presence of hx-preserve, never by its value, so
 // this is a no-argument setter. To stop preserving an element, omit the call entirely:
@@ -381,7 +391,8 @@ func (h *Wrapper) HxPreserve() *Wrapper {
 
 // HxMorphSkip leaves the element untouched during a morph swap: no attributes are copied
 // and no children are morphed. Use it on a subtree that another library owns, such as a
-// chart or an editor, so a morph does not undo its DOM changes.
+// chart or an editor, so a morph does not undo its DOM changes. htmx matches the attribute
+// on the element already in the page, not in the response, and only morph swaps read it.
 func (h *Wrapper) HxMorphSkip() *Wrapper {
 	h.element.SetAttribute("hx-morph-skip", boolTrue)
 
@@ -390,15 +401,19 @@ func (h *Wrapper) HxMorphSkip() *Wrapper {
 
 // HxMorphSkipChildren morphs the element's own attributes during a morph swap but leaves
 // its children alone. Use it where the element's attributes come from the server and its
-// content is managed on the client.
+// content is managed on the client. The attribute morph runs first, so the response must
+// carry the attribute too, or the morph removes it and later morphs update the children.
 func (h *Wrapper) HxMorphSkipChildren() *Wrapper {
 	h.element.SetAttribute("hx-morph-skip-children", boolTrue)
 
 	return h
 }
 
-// HxHistoryElt designates this element as the snapshot source for history navigation.
-// When the user navigates back, htmx re-fetches and swaps into this element instead of <body>.
+// HxHistoryElt marks the element that history navigation restores. On back or forward,
+// htmx fetches the URL with HX-History-Restore-Request set, selects the element carrying
+// this attribute out of the full page the server returns, and swaps it over the current
+// one, leaving the rest of the page alone. Use it on one element per page; without it, or
+// when the response lacks it, htmx swaps the whole body.
 func (h *Wrapper) HxHistoryElt() *Wrapper {
 	h.element.SetAttribute("hx-history-elt", boolTrue)
 
@@ -440,9 +455,24 @@ func (h *Wrapper) HxValidate(validate bool, mods ...Mod) *Wrapper {
 // controls rather than in a separate script tag. Pass the event name as htmx dispatches
 // it, e.g. "click" or "htmx:after:swap"; the event package holds the htmx names. htmx also
 // accepts hx-on::after:swap as shorthand for the htmx: prefix, which this writes in full.
+// The HTML parser lowercases attribute names, so the two camelCase events,
+// htmx:before:viewTransition and htmx:after:viewTransition, cannot be bound this way; use
+// HxOnExtended for those. The ":" here is not derived from Config().MetaCharacter.
 // Example: HxOn("click", "alert('hi')") → hx-on:click="alert('hi')".
 func (h *Wrapper) HxOn(event string, handler string) *Wrapper {
 	h.element.SetAttribute("hx-on:"+event, handler)
+
+	return h
+}
+
+// HxOnExtended attaches one or more handlers through the extended form of hx-on,
+// "event -> code; event -> code", where the event side takes the hx-trigger grammar
+// (filters, modifiers such as from:body or once, and several events separated by
+// commas). The event names keep their case, so this is the way to bind
+// htmx:before:viewTransition and htmx:after:viewTransition, which HxOn cannot.
+// Example: HxOnExtended("closeDialog from:body -> this.close()").
+func (h *Wrapper) HxOnExtended(spec string) *Wrapper {
+	h.element.SetAttribute("hx-on", spec)
 
 	return h
 }

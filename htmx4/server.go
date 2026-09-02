@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/jpl-au/fluent-htmx/htmx4/swap"
@@ -27,8 +29,11 @@ type TriggerBuilder struct {
 	triggers []triggerEvent
 }
 
-// HxRequest returns true if the request was initiated by HTMX.
-// HTMX sends the HX-Request header with every AJAX request it makes.
+// HxRequest returns true if the request was initiated by HTMX. htmx sends the HX-Request
+// header with every request it issues except a history restore, which carries only
+// HX-History-Restore-Request; check HxHistoryRestoreRequest for that case. A handler that
+// renders a fragment for htmx and a full page otherwise should send Vary: HX-Request, so a
+// shared cache keeps the two apart.
 func HxRequest(r *http.Request) bool {
 	return r.Header.Get(HXRequestHeader) == boolTrue
 }
@@ -70,8 +75,10 @@ func HxCurrentURL(r *http.Request) string {
 	return r.Header.Get(HXCurrentURLHeader)
 }
 
-// HxHistoryRestoreRequest returns true when the user navigated back/forward and the page
-// was not found in the local history cache. The server should return a full page response.
+// HxHistoryRestoreRequest returns true when the user navigated back or forward and htmx is
+// fetching the page to restore. The server should return the full page; htmx selects the
+// hx-history-elt element out of it, or swaps the whole body when there is none. Use it to
+// skip side effects such as analytics on a restore.
 func HxHistoryRestoreRequest(r *http.Request) bool {
 	return r.Header.Get(HXHistoryRestoreRequestHeader) == boolTrue
 }
@@ -84,17 +91,30 @@ func HxHistoryRestoreRequest(r *http.Request) bool {
 // HX-Prompt; pair this reader with the client [Wrapper.HxPrompt] setter and load that script. With
 // neither in play this returns an empty string unless something else on your side sets HX-Prompt.
 func HxPrompt(r *http.Request) string {
-	return r.Header.Get(HXPromptHeader)
+	raw := r.Header.Get(HXPromptHeader)
+	// The extension sends encodeURI(answer), which percent-encodes spaces and non-ASCII
+	// text but leaves "+" alone, so this is a path decode rather than a query decode.
+	decoded, err := url.PathUnescape(raw)
+	if err != nil {
+		slog.Debug("HX-Prompt header is not valid percent-encoding, returning it as sent", "value", raw, "error", err)
+		return raw
+	}
+
+	return decoded
 }
 
-// HxTarget returns the target element the response will be swapped into.
-// The value format is "tagName#id" (e.g. "div#result").
+// HxTarget returns the target element the response will be swapped into. The value is the
+// lower-case tag name, followed by "#id" when the element has an id (e.g. "div#result", or
+// "div" alone). An id with characters outside the URI set arrives percent-encoded, as the
+// client applies encodeURI to it.
 func HxTarget(r *http.Request) string {
 	return r.Header.Get(HXTargetHeader)
 }
 
 // HxSource returns the element that triggered the request, sent in the HX-Source header
-// with the value format "tagName#id" (e.g. "button#submit").
+// as the lower-case tag name followed by "#id" when the element has an id (e.g.
+// "button#submit", or "button" alone). An id with characters outside the URI set arrives
+// percent-encoded, as the client applies encodeURI to it.
 func HxSource(r *http.Request) string {
 	return r.Header.Get(HXSourceHeader)
 }
@@ -102,16 +122,16 @@ func HxSource(r *http.Request) string {
 // HxRequestType returns the HX-Request-Type header, which htmx sets to "full" for a
 // full-page request or "partial" for a partial swap. Use it to vary the response - for
 // example returning a whole page layout for a full request and just a fragment for a
-// partial one. Returns empty string for non-htmx requests.
+// partial one. Returns empty string for non-htmx requests. A response that differs by
+// it should carry Vary: HX-Request-Type, so a shared cache keeps the two apart.
 func HxRequestType(r *http.Request) string {
 	return r.Header.Get(HXRequestTypeHeader)
 }
 
 // HxRedirect performs a client-side redirect. For HTMX requests, it sets the HX-Redirect
-// response header and writes a 200 status, then htmx navigates client-side. (htmx honours
-// HX-Redirect at any status; 200 is used here so the htmx path returns an ordinary response
-// carrying the header. The code argument applies to the standard HTTP redirect below.)
-// For standard requests, it uses a standard HTTP redirect with the given code.
+// response header and writes a 200 status, then htmx navigates client-side; a 3xx would
+// be followed by fetch before htmx could read the header. The code argument applies to
+// the standard HTTP redirect used for non-htmx requests.
 func HxRedirect(w http.ResponseWriter, r *http.Request, url string, code int) {
 	if HxRequest(r) {
 		w.Header().Set(HXRedirectHeader, url)
@@ -146,31 +166,28 @@ func HxLastPartID(r *http.Request) string {
 
 // Location is the object form of the HX-Location header, for a client-side redirect that
 // needs more than a path. Path is the URL to fetch; every other field is optional and
-// overrides how the response is applied. Push and Replace choose the history handling: the
-// default pushes the new URL, Replace replaces the current entry, and NoPush leaves history
-// alone.
+// overrides how the response is applied. Push and Replace choose the history handling and
+// take the same values as HxPushURL: "true" for the fetched URL, "false" to leave history
+// alone, or a URL to record instead. With both empty the fetched URL is pushed.
 type Location struct {
-	Path    string            `json:"path"`
-	Source  string            `json:"source,omitempty"`  // CSS selector for the element the request is issued from
-	Event   string            `json:"event,omitempty"`   // Event that triggers the request
-	Target  string            `json:"target,omitempty"`  // CSS selector for the swap target
-	Swap    swap.Strategy     `json:"swap,omitempty"`    // Swap style for the response
-	Select  string            `json:"select,omitempty"`  // CSS selector for the part of the response to swap
-	Values  map[string]any    `json:"values,omitempty"`  // Extra request values
-	Headers map[string]string `json:"headers,omitempty"` // Extra request headers
-	Replace bool              `json:"replace,omitempty"` // Replace the current history entry instead of pushing
-	NoPush  bool              `json:"-"`                 // Leave history untouched
+	Path    string            // URL to fetch
+	Source  string            // CSS selector for the element the request is issued from
+	Target  string            // CSS selector for the swap target
+	Swap    swap.Strategy     // Swap style for the response
+	Select  string            // CSS selector for the part of the response to swap
+	Values  map[string]any    // Extra request values
+	Headers map[string]string // Extra request headers
+	Push    string            // History push: "true", "false" or a URL
+	Replace string            // History replace: "true", "false" or a URL
 }
 
 // HxLocationWith sets the HX-Location header from a [Location], for a client-side redirect
 // with a target, swap or history override. Use HxLocation when a plain path is enough.
+// The multipart extension cannot parse this object form on a part; see PartLocation.
 func HxLocationWith(w http.ResponseWriter, loc Location) error {
 	out := map[string]any{"path": loc.Path}
 	if loc.Source != "" {
 		out["source"] = loc.Source
-	}
-	if loc.Event != "" {
-		out["event"] = loc.Event
 	}
 	if loc.Target != "" {
 		out["target"] = loc.Target
@@ -187,11 +204,13 @@ func HxLocationWith(w http.ResponseWriter, loc Location) error {
 	if len(loc.Headers) > 0 {
 		out["headers"] = loc.Headers
 	}
-	if loc.Replace {
-		out["replace"] = true
+	// Sent as strings: the client compares against "true" to mean the fetched URL, and a
+	// boolean true would be taken as the path itself.
+	if loc.Push != "" {
+		out["push"] = loc.Push
 	}
-	if loc.NoPush {
-		out["push"] = false
+	if loc.Replace != "" {
+		out["replace"] = loc.Replace
 	}
 
 	data, err := json.Marshal(out)
@@ -207,7 +226,9 @@ func HxLocationWith(w http.ResponseWriter, loc Location) error {
 // The value can be a plain URL string or a JSON object with path, source, event,
 // target, swap, select, values and headers properties for fine-grained control. The
 // new URL is pushed into history unless the object sets push:false, or sets replace
-// to replace the current entry instead.
+// to replace the current entry instead. A plain URL is used as it is; the value is
+// read as the object form only when it starts with "{" or contains a path: key. htmx
+// does not read the header on a 3xx response, so send it with a 2xx.
 func HxLocation(w http.ResponseWriter, url string) {
 	w.Header().Set(HXLocationHeader, url)
 }
@@ -268,7 +289,8 @@ func (tb *TriggerBuilder) AddTrigger(eventName string, details any) *TriggerBuil
 
 // Write renders the node, sets the HX-Trigger header, and writes the response.
 // Simple events (no details) are comma-separated; if any event has details,
-// all events are marshaled into a single JSON object per the HTMX spec.
+// all events are marshaled into a single JSON object per the HTMX spec. Use a 2xx
+// code: htmx does not read response headers on a 3xx.
 func (tb *TriggerBuilder) Write(n node.Node, code int) error {
 	if len(tb.triggers) > 0 {
 		headerValue, err := encodeTriggers(tb.triggers)

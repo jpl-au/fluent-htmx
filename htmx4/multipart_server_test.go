@@ -163,7 +163,8 @@ func TestMultipartPartOptions(t *testing.T) {
 	// Every PartOption on a single part, so each HX-* header is exercised.
 	if err := mw.WritePart(text.RawText("<p>x</p>"),
 		PartTarget("#t"), PartSwap(swap.OuterHTML), PartSelect("#frag"), PartTrigger("saved"), PartID("7"),
-		PartRefresh(), PartRedirect("/next"), PartLocation("/there")); err != nil {
+		PartRefresh(), PartRedirect("/next"), PartLocation("/there"),
+		PartPushURL("/pushed"), PartReplaceURL("false")); err != nil {
 		t.Fatalf("WritePart() returned error: %v", err)
 	}
 
@@ -191,6 +192,8 @@ func TestMultipartPartOptions(t *testing.T) {
 		{HXRefreshHeader, "true"},
 		{HXRedirectHeader, "/next"},
 		{HXLocationHeader, "/there"},
+		{HXPushURLHeader, "/pushed"},
+		{HXReplaceURLHeader, "false"},
 	} {
 		if got := part.Header.Get(c.header); got != c.want {
 			t.Errorf("%s = %q, want %q", c.header, got, c.want)

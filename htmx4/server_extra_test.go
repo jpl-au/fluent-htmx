@@ -48,21 +48,36 @@ func TestHxPTagUnchanged(t *testing.T) {
 
 func TestHxLocationWith(t *testing.T) {
 	w := httptest.NewRecorder()
-	err := HxLocationWith(w, Location{Path: "/orders", Target: "#main", Swap: swap.InnerHTML, Replace: true})
+	err := HxLocationWith(w, Location{Path: "/orders", Target: "#main", Swap: swap.InnerHTML, Replace: "true"})
 	if err != nil {
 		t.Fatalf("HxLocationWith() returned error: %v", err)
 	}
 
-	want := `{"path":"/orders","replace":true,"swap":"innerHTML","target":"#main"}`
+	want := `{"path":"/orders","replace":"true","swap":"innerHTML","target":"#main"}`
 	if got := w.Header().Get(HXLocationHeader); got != want {
 		t.Errorf("HX-Location = %q, want %q", got, want)
 	}
 
 	w = httptest.NewRecorder()
-	if err := HxLocationWith(w, Location{Path: "/orders", NoPush: true}); err != nil {
+	if err := HxLocationWith(w, Location{Path: "/orders", Push: "false"}); err != nil {
 		t.Fatalf("HxLocationWith() returned error: %v", err)
 	}
-	if got, want := w.Header().Get(HXLocationHeader), `{"path":"/orders","push":false}`; got != want {
+	if got, want := w.Header().Get(HXLocationHeader), `{"path":"/orders","push":"false"}`; got != want {
 		t.Errorf("HX-Location = %q, want %q", got, want)
+	}
+}
+
+// The prompt extension sends encodeURI(answer), so the reader must decode it.
+func TestHxPromptDecodes(t *testing.T) {
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r.Header.Set(HXPromptHeader, "caf%C3%A9%20au%20lait+1")
+
+	if got, want := HxPrompt(r), "café au lait+1"; got != want {
+		t.Errorf("HxPrompt = %q, want %q", got, want)
+	}
+
+	r.Header.Set(HXPromptHeader, "100%")
+	if got := HxPrompt(r); got != "100%" {
+		t.Errorf("HxPrompt on bad encoding = %q, want the raw value", got)
 	}
 }

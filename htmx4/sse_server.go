@@ -14,8 +14,9 @@ import (
 // client-side SSE extension (SSEConnect, SSEClose) to enable real-time updates from
 // server to browser. An unnamed message (Swap) is swapped into the connecting element's
 // target; a named event (Send) is dispatched as a DOM event and not swapped. There is no
-// sse-swap in htmx 4. The client asks for the stream with Accept: text/event-stream and
-// opens it on the element's hx-trigger, or on load.
+// sse-swap in htmx 4. The client appends text/event-stream to its Accept header, so the
+// request arrives as Accept: text/html, text/event-stream, and opens the stream on the
+// element's hx-trigger, or on load.
 type SSEWriter struct {
 	w io.Writer
 	f http.Flusher
@@ -60,7 +61,10 @@ const ReleaseEvent = "hx:release"
 // Swap sends an unnamed message carrying the rendered node, which the client swaps
 // into the connecting element's target with its hx-swap style. This is the call for
 // pushing content; a named event from Send is dispatched as a DOM event and is not
-// swapped. A nil node sends an empty message, which the client ignores.
+// swapped. The data may hold hx-swap-oob elements and hx-partial blocks, which swap
+// on their own. A nil node sends one empty data line: the client's swapEmpty guard
+// keeps it from clearing the target, but the message events still fire and it still
+// counts as the first message for SSEReleaseFirst.
 func (s *SSEWriter) Swap(n node.Node) error {
 	return s.Send("", n)
 }
@@ -75,10 +79,10 @@ func (s *SSEWriter) SwapBytes(data []byte) error {
 // Send writes a named SSE event carrying the rendered node as its data payload.
 // The client dispatches a named event as a DOM event of that name on the connecting
 // element, with the data in the event detail, and does not swap it; listen with
-// HxTrigger or HxOn. Use Swap to push content into the page. A nil node sends a
-// single empty data line, which suits signal-only events such as the one named in
-// hx-sse:close. An empty event name sends an unnamed message, the same as Swap.
-// The response is flushed after each event.
+// HxTrigger or HxOn. Use Swap to push content into the page. A nil node sends the
+// event line alone, which the client dispatches with empty data; that suits signal
+// events such as the one named in hx-sse:close. An empty event name sends an unnamed
+// message, the same as Swap. The response is flushed after each event.
 //
 // Send is the fluent path. When the payload is not a fluent node, use SendBytes;
 // to set an event id or retry interval, use SendEvent.
@@ -96,17 +100,19 @@ func (s *SSEWriter) Send(event string, n node.Node) error {
 // SendBytes writes a named SSE event whose data is the given bytes, without
 // involving fluent. It is the escape hatch for payloads that are not fluent
 // nodes: markup from another template engine, a cached fragment, or plain text.
-// A nil or empty payload sends a single empty data line. The response is flushed
+// A nil or empty payload sends the event line alone. The response is flushed
 // after the event.
 func (s *SSEWriter) SendBytes(event string, data []byte) error {
 	return s.SendEvent(Event{Name: event, Data: data})
 }
 
 // SendEvent writes one event with every field the SSE format allows: the name, an
-// id the browser echoes back as Last-Event-ID on reconnect, a retry interval, and
-// the data. Fields left at their zero value are omitted, except that an event with
-// no data still sends one empty data line so the client delivers it. The response
-// is flushed after the event.
+// id the client sends back as Last-Event-ID on reconnect, a retry interval, and the
+// data. Fields left at their zero value are omitted. A block with an id, a retry or
+// a name and no data is still meaningful: an id-only block moves the client's
+// Last-Event-ID without dispatching a message, and a name-only block dispatches the
+// event with empty data. Only an event with no fields at all sends an empty data
+// line, so the client delivers it. The response is flushed after the event.
 func (s *SSEWriter) SendEvent(e Event) error {
 	if e.Name != "" {
 		if _, err := fmt.Fprintf(s.w, "event: %s\n", e.Name); err != nil {
@@ -124,9 +130,11 @@ func (s *SSEWriter) SendEvent(e Event) error {
 		}
 	}
 
-	for line := range bytes.SplitSeq(e.Data, []byte("\n")) {
-		if _, err := fmt.Fprintf(s.w, "data: %s\n", line); err != nil {
-			return fmt.Errorf("failed to write SSE data: %w", err)
+	if len(e.Data) > 0 || (e.Name == "" && e.ID == "" && e.Retry == 0) {
+		for line := range bytes.SplitSeq(e.Data, []byte("\n")) {
+			if _, err := fmt.Fprintf(s.w, "data: %s\n", line); err != nil {
+				return fmt.Errorf("failed to write SSE data: %w", err)
+			}
 		}
 	}
 
@@ -140,9 +148,10 @@ func (s *SSEWriter) SendEvent(e Event) error {
 }
 
 // Release sends the hx:release event, which completes the request that opened the
-// stream on the client while leaving the stream open. Use it when the element's
-// request indicators and after-request handlers should run once the stream is
-// established rather than when it ends.
+// stream on the client while leaving the stream open: indicators hide, disabled
+// elements re-enable and the after-request handlers run. It has an effect only while
+// the request is still held, which is the SSEReleaseEnd setting, the default for a
+// one-shot request; an hx-sse:connect stream is released as soon as it opens.
 func (s *SSEWriter) Release() error {
 	return s.SendEvent(Event{Name: ReleaseEvent})
 }

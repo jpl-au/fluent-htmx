@@ -3,6 +3,7 @@ package htmx
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/jpl-au/fluent-htmx/htmx4/swap"
 )
@@ -21,6 +22,33 @@ func Config() *config {
 	return &config{
 		settings: make(map[string]any),
 	}
+}
+
+// HistoryReload keeps history tracking on but makes a back or forward navigation reload
+// the page from the server instead of swapping the restored content in. It writes the
+// "reload" value of the history setting; HistoryEnabled writes the true and false values.
+func (c *config) HistoryReload() *config {
+	c.settings["history"] = "reload"
+
+	return c
+}
+
+// SafeEval makes the hx-csp extension run hx-on, hx-vals js: and hx-confirm js: code
+// through nonce-carrying script injection instead of the Function constructor, so a page
+// can drop unsafe-eval from its policy. Defaults to false. Read by the hx-csp extension.
+func (c *config) SafeEval(safe bool) *config {
+	c.settings["safeEval"] = safe
+
+	return c
+}
+
+// BoostBrowserIndicator shows the browser's native loading indicator for every boosted
+// request, without an hx-browser-indicator attribute on each element. Defaults to false.
+// Read by the browser-indicator extension.
+func (c *config) BoostBrowserIndicator(on bool) *config {
+	c.settings["boostBrowserIndicator"] = on
+
+	return c
 }
 
 // LogAll turns on htmx's console logging of every event it dispatches. Defaults to false.
@@ -137,18 +165,22 @@ func (c *config) ImplicitInheritance(implicit bool) *config {
 }
 
 // NoSwap lists the response status codes (and code patterns) whose bodies must not be
-// swapped into the DOM. Every response except 204 and 304 is swapped by default, so add
-// codes here to keep, for example, error responses from replacing content:
-// NoSwap([]string{"4xx", "5xx"}).
+// swapped into the DOM. The list replaces htmx's default of 204 and 304 rather than adding
+// to it, so repeat those when keeping, for example, error responses from replacing content:
+// NoSwap([]string{"204", "304", "4xx", "5xx"}).
 func (c *config) NoSwap(codes []string) *config {
 	c.settings["noSwap"] = codes
 
 	return c
 }
 
-// Extensions sets the comma-separated allow list of extension names permitted to activate.
+// Extensions sets the comma-separated allow list of extensions permitted to activate.
 // Extensions are loaded by including their script; this list restricts which of the loaded
 // extensions htmx will actually run, so an included script cannot activate unless named here.
+// Names are the registration names, which differ from the attribute and script names for
+// some: sse, ws, preload, download, upsert, ptag, browser-indicator, history-cache,
+// alpine-compat, compat, hx-pending, hx-targets, hx-live, hx-head, hx-csp, hx-prompt and
+// hx-multipart.
 func (c *config) Extensions(extensions string) *config {
 	c.settings["extensions"] = extensions
 
@@ -186,11 +218,10 @@ func (c *config) AllowEmptySwapAfterOOB(allow bool) *config {
 	return c
 }
 
-// MorphIgnore lists full attribute names that morph swaps preserve on existing elements
+// MorphIgnore lists attribute name prefixes that morph swaps preserve on existing elements
 // rather than overwrite from the response, so external libraries can keep their own
-// attributes across a morph. htmx matches each entry by exact name, not by prefix, so list
-// every complete attribute name (e.g. "data-my-state", not "data-my-"). Defaults to
-// ["data-htmx-powered"].
+// attributes across a morph. Each entry matches every attribute whose name starts with it,
+// so "data-my-" covers data-my-state and data-my-other. Defaults to ["data-htmx-powered"].
 func (c *config) MorphIgnore(attributeNames []string) *config {
 	c.settings["morphIgnore"] = attributeNames
 
@@ -206,16 +237,20 @@ func (c *config) MorphScanLimit(limit int) *config {
 	return c
 }
 
-// MorphSkip sets a CSS selector matching elements that morph swaps leave untouched,
-// preserving them and their subtrees verbatim across a morph.
+// MorphSkip sets the CSS selector matching elements that morph swaps leave untouched,
+// preserving them and their subtrees verbatim across a morph. Defaults to
+// "[hx-morph-skip]", which is what HxMorphSkip writes; a new selector replaces that, so
+// include it in the new value to keep the attribute working.
 func (c *config) MorphSkip(selector string) *config {
 	c.settings["morphSkip"] = selector
 
 	return c
 }
 
-// MorphSkipChildren sets a CSS selector matching elements whose children morph swaps leave
-// untouched, while still morphing the matched element itself.
+// MorphSkipChildren sets the CSS selector matching elements whose children morph swaps leave
+// untouched, while still morphing the matched element itself. Defaults to
+// "[hx-morph-skip-children]", which is what HxMorphSkipChildren writes; a new selector
+// replaces that, so include it in the new value to keep the attribute working.
 func (c *config) MorphSkipChildren(selector string) *config {
 	c.settings["morphSkipChildren"] = selector
 
@@ -234,7 +269,12 @@ func (c *config) ToMetaTag() (string, error) {
 		return "", fmt.Errorf("failed to marshal htmx config: %w", err)
 	}
 
-	return fmt.Sprintf(`<meta name="htmx-config" content='%s'>`, string(jsonBytes)), nil
+	// The JSON sits inside a single-quoted attribute. json.Marshal escapes <, > and &
+	// inside strings, but a single quote passes through and would end the attribute.
+	// The browser decodes the entity before htmx reads the content.
+	content := strings.ReplaceAll(string(jsonBytes), "'", "&#39;")
+
+	return fmt.Sprintf(`<meta name="htmx-config" content='%s'>`, content), nil
 }
 
 // ToJSON marshals only the options you set into a JSON object matching the shape of

@@ -10,7 +10,9 @@ import (
 )
 
 // WSMessage is what an hx-ws:send element transmits to the server: the form values it
-// collected, merged with hx-vals, and the htmx request headers under a headers key. Values
+// collected, merged with hx-vals, and under a headers key the request headers htmx builds for
+// the element: HX-Request, HX-Source, HX-Target, HX-Current-URL and, when boosted,
+// HX-Boosted. A form field named headers is not sent. Values
 // keeps whatever JSON types the client sent, so a number arrives as float64, a multi-value
 // field as []any, and an hx-vals boolean as bool.
 type WSMessage struct {

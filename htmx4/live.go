@@ -60,8 +60,10 @@ func (h *Wrapper) HxLiveStyle(expression string) *Wrapper {
 	return h
 }
 
-// HxLiveAttr sets the named attribute to the expression's value whenever it changes. A
-// boolean value adds or removes the attribute. Example: HxLiveAttr("disabled", "q('#agree').checked === false").
+// HxLiveAttr sets the named attribute to the expression's value whenever it changes. For a
+// boolean HTML attribute such as disabled, required, hidden or checked, a boolean value
+// adds or removes it; for any other attribute a boolean is written as the text "true" or
+// "false". Example: HxLiveAttr("disabled", "q('#agree').checked === false").
 func (h *Wrapper) HxLiveAttr(name string, expression string) *Wrapper {
 	h.element.SetAttribute("hx-live:"+name, expression)
 
