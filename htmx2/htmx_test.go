@@ -206,12 +206,15 @@ func TestHxSync(t *testing.T) {
 
 func TestHxOn(t *testing.T) {
 	d := div.New()
-	New(d).HxOn("after-swap", "console.log('swapped')")
+	New(d).HxOn("click", "console.log('clicked')").HxOnHtmx("after-swap", "console.log('swapped')")
 
 	html := string(d.RenderBytes())
-	// htmx 2 event attributes use the double colon: hx-on::EVENT.
-	if !strings.Contains(html, "hx-on::after-swap") {
+	// hx-on:EVENT takes any event; hx-on::EVENT is the shorthand for an htmx event.
+	if !strings.Contains(html, `hx-on:click="`) {
 		t.Errorf("HxOn() did not set attribute, got: %s", html)
+	}
+	if !strings.Contains(html, "hx-on::after-swap") {
+		t.Errorf("HxOnHtmx() did not set attribute, got: %s", html)
 	}
 
 	if !strings.Contains(html, "console.log") {

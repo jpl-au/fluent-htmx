@@ -94,7 +94,8 @@ htmx.New(elem).
 | `HxDisable()` | `hx-disable` | Disable HTMX processing |
 | `HxDisabledElt(selector)` | `hx-disabled-elt` | Disable elements during request |
 | `HxExt(extensions)` | `hx-ext` | Enable extensions |
-| `HxOn(event, handler)` | `hx-on::event` | Inline event handlers |
+| `HxOn(event, handler)` | `hx-on:event` | Inline event handlers for any event; htmx events in kebab-case, e.g. `event.AfterSwap` |
+| `HxOnHtmx(event, handler)` | `hx-on::event` | Shorthand for an htmx event without the `htmx:` prefix |
 
 `HxSwap` accepts a `swap.Strategy` type. Use the predefined constants `swap.InnerHTML`, `swap.OuterHTML`, `swap.BeforeBegin`, `swap.AfterBegin`, `swap.BeforeEnd`, `swap.AfterEnd`, `swap.Delete`, `swap.None`, or `swap.Custom("innerHTML swap:1s")` for strategies with modifiers.
 

@@ -34,7 +34,7 @@ If you need `SetData()` or `SetAria()`, call them on the Fluent element **before
 
 ```go
 // Client-side: wrap element, chain HTMX methods
-htmx.New(element).HxPost("/api/endpoint").HxTarget("#result").HxOn("after-swap", "console.log('done')")
+htmx.New(element).HxPost("/api/endpoint").HxTarget("#result").HxOnHtmx("after-swap", "console.log('done')")
 
 // Server-side: use helper functions
 if htmx.HxRequest(r) { /* partial */ } else { /* full page */ }
@@ -135,7 +135,8 @@ This is the **exhaustive** list of methods on `*Wrapper`. If a method is not lis
 | Method | Attribute |
 |--------|-----------|
 | `HxTrigger(events string)` | `hx-trigger` |
-| `HxOn(event string, handler string)` | `hx-on::event` |
+| `HxOn(event string, handler string)` | `hx-on:event` (any event; htmx events in kebab-case) |
+| `HxOnHtmx(event string, handler string)` | `hx-on::event` (htmx event without the `htmx:` prefix) |
 
 Use constants from the `event` package for event names: `event.AfterSwap`, `event.BeforeSwap`, `event.AfterSettle`, `event.BeforeRequest`, `event.AfterRequest`, `event.ConfigRequest`, etc.
 
@@ -361,7 +362,7 @@ jsonStr, err := cfg.ToJSON()
 | `HistoryEnabled(bool)` | `true` | Enable history snapshots |
 | `HistoryCacheSize(int)` | `10` | Max cached history pages |
 | `RefreshOnHistoryMiss(bool)` | `false` | Full refresh on cache miss |
-| `HistoryRestoreAsHxRequest(bool)` | `true` | Send HX-Request on history restore |
+| `HistoryRestoreAsHxRequest(bool)` | `true` | Send HX-Request on a history cache miss; set false when partials are returned for HX-Request |
 | `GlobalViewTransitions(bool)` | `false` | Use View Transitions API |
 | `ScrollBehaviour(string)` | `"instant"` | Scroll animation style |
 | `ScrollBehavior(string)` | - | American spelling alias |
@@ -377,7 +378,7 @@ jsonStr, err := cfg.ToJSON()
 | `AllowScriptTags(bool)` | `true` | Execute scripts in swapped content |
 | `InlineScriptNonce(string)` | `""` | CSP nonce for inline scripts |
 | `InlineStyleNonce(string)` | `""` | CSP nonce for inline styles |
-| `AttributesToSettle([]string)` | `["class","style"]` | Attributes updated during settle |
+| `AttributesToSettle([]string)` | `["class","style","width","height"]` | Attributes updated during settle |
 | `SelfRequestsOnly(bool)` | `true` | Restrict to same-domain requests |
 | `WithCredentials(bool)` | `false` | Cross-origin credentials |
 | `GetCacheBusterParam(bool)` | `false` | Append cache-buster to GET |
@@ -386,9 +387,10 @@ jsonStr, err := cfg.ToJSON()
 | `DisableInheritance(bool)` | `false` | Prevent attribute inheritance |
 | `WsReconnectDelay(string)` | `"full-jitter"` | WebSocket reconnect strategy |
 | `WsBinaryType(string)` | `"blob"` | WebSocket binary data type |
-| `MethodsThatUseURLParams([]string)` | `["get"]` | Methods using URL query params |
+| `MethodsThatUseURLParams([]string)` | `["get","delete"]` | Methods using URL query params |
 | `ReportValidityOfForms(bool)` | `false` | Call reportValidity() before submit |
-| `AllowNestedOobSwaps(bool)` | `true` | Process nested OOB swaps |
+| `AllowNestedOobSwaps(bool)` | `true` | Process OOB elements nested inside the main response content |
+| `ResponseTargetPrefersRetargetHeader(bool)`, `ResponseTargetPrefersExisting(bool)`, `ResponseTargetUnsetsError(bool)`, `ResponseTargetSetsError(bool)` | `true`, `false`, `true`, `false` | response-targets extension settings |
 | `TriggerSpecsCache(interface{})` | - | Pre-populated trigger spec cache |
 | `ResponseHandling(interface{})` | - | Custom response handling rules |
 | `ToMetaTag()` | - | Returns `(string, error)` |
@@ -422,7 +424,7 @@ htmx.New(form).HxPost("/add").HxTarget("#list").HxSwap(swap.AfterBegin)
 ```go
 handler := `document.querySelectorAll('.item').forEach(el => el.classList.remove('active'));
 event.target.closest('.item').classList.add('active');`
-htmx.New(div).HxOn("after-swap", handler)
+htmx.New(div).HxOnHtmx("after-swap", handler)
 ```
 
 ### Delete with Confirmation

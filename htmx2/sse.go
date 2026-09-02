@@ -13,7 +13,10 @@ func (h *Wrapper) SSEConnect(url string) *Wrapper {
 }
 
 // SSESwap listens for a named SSE event and swaps its data into the element.
-// The event name must match what the server sends in the SSE "event:" field.
+// The name must match the server's "event:" field; an event sent without a name
+// arrives as "message". Several names may be given separated by commas. The
+// element must be the sse-connect element or a descendant of it. An event can
+// also trigger a request instead, through HxTrigger("sse:name").
 func (h *Wrapper) SSESwap(eventName string) *Wrapper {
 	h.element.SetAttribute("sse-swap", eventName)
 

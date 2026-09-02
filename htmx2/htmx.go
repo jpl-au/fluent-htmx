@@ -125,8 +125,9 @@ func (h *Wrapper) HxPatch(url string) *Wrapper {
 // server's response, often the surrounding list re-rendered or empty to clear
 // the element, swaps into the element unless HxTarget and HxSwap redirect it.
 //
-// Like GET, a DELETE does not include the enclosing form's inputs; add
-// HxInclude("closest form") where that form data is needed.
+// As a non-GET request it includes the values of the associated form, but delete
+// is in methodsThatUseUrlParams by default, so those values travel in the URL
+// query string rather than the body.
 func (h *Wrapper) HxDelete(url string) *Wrapper {
 	h.element.SetAttribute("hx-delete", url)
 
@@ -180,7 +181,9 @@ func (h *Wrapper) HxConfirm(message string) *Wrapper {
 }
 
 // HxVals adds extra JSON-encoded values to the request parameters.
-// Example: `{"key": "value"}`.
+// Example: `{"key": "value"}`. Prefix the value with "js:" to have it evaluated
+// at request time, which needs allowEval. Inherited; a child's declaration
+// overrides the parent's for the same key.
 func (h *Wrapper) HxVals(values string) *Wrapper {
 	h.element.SetAttribute("hx-vals", values)
 
@@ -188,7 +191,8 @@ func (h *Wrapper) HxVals(values string) *Wrapper {
 }
 
 // HxHeaders adds extra JSON-encoded headers to the AJAX request.
-// Example: `{"X-Custom-Header": "value"}`.
+// Example: `{"X-Custom-Header": "value"}`. Prefix the value with "js:" to have it
+// evaluated at request time. Inherited; a child's declaration overrides the parent's.
 func (h *Wrapper) HxHeaders(headers string) *Wrapper {
 	h.element.SetAttribute("hx-headers", headers)
 
@@ -197,6 +201,8 @@ func (h *Wrapper) HxHeaders(headers string) *Wrapper {
 
 // HxIndicator specifies a CSS selector for an element to show while the request is in flight.
 // The targeted element receives the htmx-request class, which can be styled to show a spinner.
+// The value may also be "closest <selector>", and "inherit, <selector>" keeps the parent's
+// indicators and adds more.
 func (h *Wrapper) HxIndicator(indicator string) *Wrapper {
 	h.element.SetAttribute("hx-indicator", indicator)
 
@@ -233,18 +239,21 @@ func (h *Wrapper) HxSelect(selector string) *Wrapper {
 	return h
 }
 
-// HxSelectOOB selects content from the response for out-of-band swaps.
-// These elements are swapped into matching targets elsewhere in the DOM,
-// independently of the primary swap target.
+// HxSelectOOB selects content from the response for out-of-band swaps. The value is a
+// comma-separated list of selectors; each element found is swapped over the page element
+// with the same id, with outerHTML unless the selector is followed by a colon and a swap
+// style, as in "#alert:afterbegin".
 func (h *Wrapper) HxSelectOOB(selector string) *Wrapper {
 	h.element.SetAttribute("hx-select-oob", selector)
 
 	return h
 }
 
-// HxSwapOOB marks response content for out-of-band swapping.
-// The element is swapped into the DOM by matching its ID, regardless of the primary swap target.
-// Typically set on server-rendered response fragments rather than request elements.
+// HxSwapOOB marks response content for out-of-band swapping. The value is "true" to replace
+// the page element with the same id, a swap style to apply against that element, or a swap
+// style followed by a colon and a CSS selector to swap into every match. Styles other than
+// outerHTML strip the element's own tag and swap its children. Set on server-rendered
+// response fragments, not request elements.
 func (h *Wrapper) HxSwapOOB(value string) *Wrapper {
 	h.element.SetAttribute("hx-swap-oob", value)
 
@@ -268,8 +277,9 @@ func (h *Wrapper) HxParams(params string) *Wrapper {
 	return h
 }
 
-// HxInclude includes values from other elements in the request using a CSS selector.
-// Useful for submitting inputs that are outside the triggering element's form.
+// HxInclude includes values from other elements in the request using a CSS selector,
+// or the extended forms this, closest, find, next and previous. "inherit, <selector>"
+// keeps the parent's inclusions and adds more. Disabled inputs are skipped.
 func (h *Wrapper) HxInclude(selector string) *Wrapper {
 	h.element.SetAttribute("hx-include", selector)
 
@@ -350,7 +360,9 @@ func (h *Wrapper) HxDisable() *Wrapper {
 }
 
 // HxDisabledElt adds the "disabled" attribute to the matched elements while a request is in flight.
-// Useful for preventing duplicate form submissions by disabling the submit button.
+// Useful for preventing duplicate form submissions by disabling the submit button. The value
+// takes the extended selector forms (this, closest, find, next, previous), a comma-separated
+// list, and "inherit, <selector>" to keep the parent's selectors and add more.
 func (h *Wrapper) HxDisabledElt(selector string) *Wrapper {
 	h.element.SetAttribute("hx-disabled-elt", selector)
 
@@ -365,12 +377,10 @@ func (h *Wrapper) HxDisinherit(attributes string) *Wrapper {
 	return h
 }
 
-// HxInherit re-enables inheritance of the named HTMX attributes by this element's
-// descendants, so a value declared once on a container applies to the elements
-// nested within it. htmx 2 turned off implicit inheritance by default, so
-// descendants no longer pick up a parent's hx-* attributes automatically; set
-// this to opt back in for specific attributes, passing a space-separated list of
-// names or "*" for all of them.
+// HxInherit enables inheritance of the named HTMX attributes by this element's
+// descendants, for pages that set htmx.config.disableInheritance to true. htmx 2
+// inherits most attributes by default, so without that setting this attribute
+// changes nothing. Pass a space-separated list of attribute names, or "*" for all.
 func (h *Wrapper) HxInherit(attributes string) *Wrapper {
 	h.element.SetAttribute("hx-inherit", attributes)
 
@@ -392,7 +402,8 @@ func (h *Wrapper) HxValidate(validate bool) *Wrapper {
 
 // HxRequest overrides HTMX request behaviour with a JSON configuration string.
 // Supported keys: "timeout" (ms), "credentials" (bool), "noHeaders" (bool).
-// Example: `{"timeout": 5000}`.
+// Example: `{"timeout": 5000}`. Prefix with "js:" to evaluate the values at request
+// time. Merge-inherited, so a child adds to a parent's settings.
 func (h *Wrapper) HxRequest(config string) *Wrapper {
 	h.element.SetAttribute("hx-request", config)
 
@@ -408,11 +419,22 @@ func (h *Wrapper) HxVars(variables string) *Wrapper {
 	return h
 }
 
-// HxOn attaches an inline event handler directly to the element (locality of behaviour).
-// Uses the hx-on::event attribute syntax so the handler lives with the element it controls,
-// rather than in a separate script tag.
-// Example: HxOn("after-swap", "console.log('swapped')") → hx-on::after-swap="console.log('swapped')".
+// HxOn attaches an inline event handler directly to the element (locality of behaviour),
+// through the hx-on:EVENT attribute. Pass any DOM or custom event name, or an htmx event
+// in its kebab-case form, which the event package holds; the browser lowercases attribute
+// names, so a camelCase name such as htmx:afterSwap never matches.
+// Example: HxOn("click", "alert('hi')") → hx-on:click, and HxOn(event.AfterSwap, ...) →
+// hx-on:htmx:after-swap. HxOnHtmx writes the shorter double-colon form for htmx events.
 func (h *Wrapper) HxOn(event string, handler string) *Wrapper {
+	h.element.SetAttribute("hx-on:"+event, handler)
+
+	return h
+}
+
+// HxOnHtmx attaches a handler for an htmx event through the hx-on::EVENT shorthand, where
+// the double colon stands for the "htmx:" prefix. Pass the event name without that prefix,
+// in kebab-case. Example: HxOnHtmx("after-swap", "init()") → hx-on::after-swap="init()".
+func (h *Wrapper) HxOnHtmx(event string, handler string) *Wrapper {
 	h.element.SetAttribute("hx-on::"+event, handler)
 
 	return h

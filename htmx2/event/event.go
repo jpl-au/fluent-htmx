@@ -96,6 +96,7 @@ const (
 	SSEOpen          = "htmx:sse-open"           // An SSE connection opened
 	SSEError         = "htmx:sse-error"          // An SSE connection error
 	SSEMessage       = "htmx:sse-message"        // An SSE message was received
+	SSEClose         = "htmx:sse-close"          // An SSE connection closed; detail.type is nodeMissing, nodeReplaced or message
 	SSEBeforeMessage = "htmx:sse-before-message" // Before an SSE message is handled
 	NoSSESourceError = "htmx:no-ssesource-error" // An element references SSE with no source
 )

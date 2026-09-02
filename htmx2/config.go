@@ -158,7 +158,7 @@ func (c *config) InlineStyleNonce(nonce string) *config {
 }
 
 // AttributesToSettle specifies which attributes are updated during the settling phase.
-// By default HTMX settles "class" and "style". Override to settle additional or fewer attributes.
+// Defaults to ["class", "style", "width", "height"]. Override to settle more or fewer.
 func (c *config) AttributesToSettle(attrs []string) *config {
 	c.settings["attributesToSettle"] = attrs
 
@@ -253,7 +253,7 @@ func (c *config) GlobalViewTransitions(enable bool) *config {
 }
 
 // MethodsThatUseURLParams sets which HTTP methods encode parameters in the URL query string.
-// Defaults to ["get"]. Other methods send parameters in the request body.
+// Defaults to ["get", "delete"]. Other methods send parameters in the request body.
 func (c *config) MethodsThatUseURLParams(methods []string) *config {
 	c.settings["methodsThatUseUrlParams"] = methods
 
@@ -303,18 +303,20 @@ func (c *config) ResponseHandling(handling any) *config {
 	return c
 }
 
-// AllowNestedOobSwaps controls whether out-of-band swaps are processed on elements
-// nested inside other OOB elements. Defaults to true. Disable to prevent unintended
-// cascading swaps in deeply nested response fragments.
+// AllowNestedOobSwaps controls whether an hx-swap-oob element nested inside the main
+// response content is processed as an out-of-band swap. Defaults to true. Set false to
+// process only elements adjacent to the main content, so a fragment reused inside a
+// larger response is not pulled out of it; nested oob attributes are then stripped.
 func (c *config) AllowNestedOobSwaps(allow bool) *config {
 	c.settings["allowNestedOobSwaps"] = allow
 
 	return c
 }
 
-// HistoryRestoreAsHxRequest controls whether history cache miss reloads are sent with the
-// HX-Request header. Defaults to true. This allows the server to distinguish history
-// restoration requests from regular page loads.
+// HistoryRestoreAsHxRequest controls whether a history cache miss request carries the
+// HX-Request header. Defaults to true. Set false whenever the server returns partials for
+// HX-Request, or a restore would get a partial where a full page is needed; the request
+// still carries HX-History-Restore-Request either way.
 func (c *config) HistoryRestoreAsHxRequest(asHxRequest bool) *config {
 	c.settings["historyRestoreAsHxRequest"] = asHxRequest
 
@@ -326,6 +328,41 @@ func (c *config) HistoryRestoreAsHxRequest(asHxRequest bool) *config {
 // for invalid inputs before the request is sent.
 func (c *config) ReportValidityOfForms(report bool) *config {
 	c.settings["reportValidityOfForms"] = report
+
+	return c
+}
+
+// ResponseTargetPrefersRetargetHeader controls whether an HX-Retarget response header
+// wins over an hx-target-[CODE] attribute in the response-targets extension. Defaults to
+// true.
+func (c *config) ResponseTargetPrefersRetargetHeader(prefer bool) *config {
+	c.settings["responseTargetPrefersRetargetHeader"] = prefer
+
+	return c
+}
+
+// ResponseTargetPrefersExisting controls whether the response-targets extension keeps a
+// target already chosen by htmx or an earlier extension instead of applying a matching
+// hx-target-[CODE] attribute. Defaults to false.
+func (c *config) ResponseTargetPrefersExisting(prefer bool) *config {
+	c.settings["responseTargetPrefersExisting"] = prefer
+
+	return c
+}
+
+// ResponseTargetUnsetsError controls whether a swap routed by hx-target-[CODE] for an
+// error status clears the isError flag on its events, so the response is treated as a
+// normal swap. Defaults to true.
+func (c *config) ResponseTargetUnsetsError(unset bool) *config {
+	c.settings["responseTargetUnsetsError"] = unset
+
+	return c
+}
+
+// ResponseTargetSetsError controls whether a swap routed by hx-target-[CODE] for a
+// non-error status sets the isError flag on its events. Defaults to false.
+func (c *config) ResponseTargetSetsError(set bool) *config {
+	c.settings["responseTargetSetsError"] = set
 
 	return c
 }

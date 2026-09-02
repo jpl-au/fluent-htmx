@@ -71,6 +71,8 @@ func HxCurrentURL(r *http.Request) string {
 
 // HxHistoryRestoreRequest returns true when the user navigated back/forward and the page
 // was not found in the local history cache. The server should return a full page response.
+// The request also carries HX-Request unless Config().HistoryRestoreAsHxRequest(false) is
+// set, which a server that returns partials for HX-Request should do.
 func HxHistoryRestoreRequest(r *http.Request) bool {
 	return r.Header.Get(HXHistoryRestoreRequestHeader) == boolTrue
 }
@@ -101,9 +103,10 @@ func HxTrigger(r *http.Request) string {
 	return r.Header.Get(HXTriggerHeader)
 }
 
-// HxRedirect performs a client-side redirect. For HTMX requests, it sets the HX-Redirect
-// response header with a 200 status - HTMX processes redirects client-side so the response
-// must be 200 for the header to be read. For standard requests, it uses a standard HTTP redirect.
+// HxRedirect performs a client-side redirect with a full page load. For HTMX requests, it
+// sets the HX-Redirect response header with a 200 status, because htmx does not read response
+// headers on a 3xx: the browser follows the redirect itself. For standard requests, it uses a
+// standard HTTP redirect with the given code.
 func HxRedirect(w http.ResponseWriter, r *http.Request, url string, code int) {
 	if HxRequest(r) {
 		w.Header().Set(HXRedirectHeader, url)
@@ -120,9 +123,11 @@ func HxPushURL(w http.ResponseWriter, url string) {
 	w.Header().Set(HXPushURLHeader, url)
 }
 
-// HxLocation performs a client-side redirect without a full page reload.
-// The value can be a plain URL string or a JSON object with path, source, event,
-// handler, target, swap, and values properties for fine-grained control.
+// HxLocation performs a client-side redirect without a full page reload, as if the
+// user had followed a boosted link to the URL. The value can be a plain URL string or a
+// JSON object with path (required) plus source, event, handler, target, swap, select,
+// values, headers, push (a path, or "false" to not push) and replace (a path). htmx does
+// not read response headers on a 3xx, so send it with a 2xx.
 func HxLocation(w http.ResponseWriter, url string) {
 	w.Header().Set(HXLocationHeader, url)
 }
@@ -189,7 +194,9 @@ func (tb *TriggerBuilder) addTrigger(header string, eventName string, details an
 
 // Write renders the node, sets the accumulated trigger headers, and writes the response.
 // Simple events (no details) are comma-separated; if any event has details,
-// all events are marshaled into a single JSON object per the HTMX spec.
+// all events are marshaled into a single JSON object per the HTMX spec. Events fire on
+// the triggering element and bubble to the body, so a listener elsewhere uses from:body.
+// Use a 2xx code: htmx does not read response headers on a 3xx.
 func (tb *TriggerBuilder) Write(n node.Node, code int) error {
 	triggerHeaders := map[string][]triggerEvent{
 		HXTriggerHeader:            tb.triggers,
