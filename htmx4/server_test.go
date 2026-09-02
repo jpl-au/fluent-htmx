@@ -150,6 +150,7 @@ func TestServerResponseHeaders(t *testing.T) {
 		{"HxReswap", func(w http.ResponseWriter) { HxReswap(w, swap.OuterHTML) }, "HX-Reswap", "outerHTML"},
 		{"HxReselect", func(w http.ResponseWriter) { HxReselect(w, "#main") }, "HX-Reselect", "#main"},
 		{"HxDownload", func(w http.ResponseWriter) { HxDownload(w, "/files/report.pdf") }, "HX-Download", "/files/report.pdf"},
+		{"HxPTagResponse", func(w http.ResponseWriter) { HxPTagResponse(w, "v2") }, "HX-PTag", "v2"},
 	}
 
 	for _, tt := range tests {

@@ -7,4 +7,5 @@ const (
 	Request   = "htmx-request"   // Applied during requests to element or hx-indicator target
 	Settling  = "htmx-settling"  // Applied to target after content swap, removed after settled
 	Swapping  = "htmx-swapping"  // Applied to target before swap, removed after swapped
+	Pending   = "hx-pending"     // Applied to the placeholder the hx-pending extension inserts while a request runs
 )

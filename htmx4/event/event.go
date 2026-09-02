@@ -3,7 +3,10 @@
 // into htmax.js and the separate scripts).
 //
 // Events follow the htmx:phase:action[:sub-action] scheme; most errors are consolidated
-// into htmx:error. The constants below hold the full dispatched names.
+// into htmx:error. The constants below hold the full dispatched names. The htmx 2 event
+// names that the htmx-2-compat extension dispatches alongside these are not listed; the
+// htmx2 package holds them. The htmx:scope and htmx:process:* hooks are extension callbacks,
+// not DOM events, so they are not listed either.
 package event
 
 // Lifecycle events.
@@ -69,26 +72,28 @@ const (
 	DownloadComplete = "htmx:download:complete" // A file download finishes
 )
 
-// Server-Sent Events extension events (hx-sse).
+// Server-Sent Events extension events (hx-sse). The before events are cancellable, and a
+// listener may call detail.waitUntil(promise) to delay handling.
 const (
-	BeforeSSEConnection = "htmx:before:sse:connection" // Before an SSE connection opens
-	AfterSSEConnection  = "htmx:after:sse:connection"  // After an SSE connection opens
-	BeforeSSEMessage    = "htmx:before:sse:message"    // Before an SSE message is handled
-	AfterSSEMessage     = "htmx:after:sse:message"     // After an SSE message is handled
+	SSEBeforeConnection = "htmx:sse:before:connection" // Before an SSE connection opens or reconnects
+	SSEAfterConnection  = "htmx:sse:after:connection"  // After an SSE connection opens
+	SSEBeforeMessage    = "htmx:sse:before:message"    // Before an SSE message is handled
+	SSEAfterMessage     = "htmx:sse:after:message"     // After an SSE message is handled
 	SSEClose            = "htmx:sse:close"             // An SSE connection closes
 	SSEError            = "htmx:sse:error"             // An SSE connection error
 )
 
-// WebSocket extension events (hx-ws).
+// WebSocket extension events (hx-ws). The before events are cancellable, and a listener may
+// call detail.waitUntil(promise) to delay the message.
 const (
-	BeforeWSConnection = "htmx:before:ws:connection" // Before a WebSocket connection opens
-	AfterWSConnection  = "htmx:after:ws:connection"  // After a WebSocket connection opens
-	BeforeWSMessage    = "htmx:before:ws:message"    // Before a received WebSocket message is handled
-	AfterWSMessage     = "htmx:after:ws:message"     // After a received WebSocket message is handled
-	BeforeWSRequest    = "htmx:before:ws:request"    // Before a message is sent to the server
-	AfterWSRequest     = "htmx:after:ws:request"     // After a message is sent to the server
-	WSClose            = "htmx:ws:close"             // A WebSocket connection closes
-	WSError            = "htmx:ws:error"             // A WebSocket connection error
+	WSBeforeConnection      = "htmx:ws:before:connection"       // Before a WebSocket connection opens or reconnects
+	WSAfterConnection       = "htmx:ws:after:connection"        // After a WebSocket connection opens
+	WSBeforeMessageIncoming = "htmx:ws:before:message:incoming" // Before a received message is handled
+	WSAfterMessageIncoming  = "htmx:ws:after:message:incoming"  // After a received message is handled
+	WSBeforeMessageOutgoing = "htmx:ws:before:message:outgoing" // Before a message is sent to the server
+	WSAfterMessageOutgoing  = "htmx:ws:after:message:outgoing"  // After a message is sent to the server
+	WSClose                 = "htmx:ws:close"                   // A WebSocket connection closes
+	WSError                 = "htmx:ws:error"                   // A WebSocket connection error
 )
 
 // History-cache extension events (hx-history).
@@ -103,10 +108,10 @@ const (
 
 // Head-support extension events (hx-head).
 const (
-	BeforeHeadMerge  = "htmx:before:head:merge"  // Before the document head is merged
-	AfterHeadMerge   = "htmx:after:head:merge"   // After the document head is merged
-	BeforeHeadAdd    = "htmx:before:head:add"    // Before an element is added to the head
-	BeforeHeadRemove = "htmx:before:head:remove" // Before an element is removed from the head
+	HeadBeforeMerge  = "htmx:head:before:merge"  // Before the document head is merged
+	HeadAfterMerge   = "htmx:head:after:merge"   // After the document head is merged
+	HeadBeforeAdd    = "htmx:head:before:add"    // Before an element is added to the head
+	HeadBeforeRemove = "htmx:head:before:remove" // Before an element is removed from the head
 )
 
 // CSP extension events (hx-nonce).

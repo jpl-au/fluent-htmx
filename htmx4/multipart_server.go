@@ -113,8 +113,44 @@ func PartSelect(selector string) PartOption {
 	return func(h textproto.MIMEHeader) { h[HXReselectHeader] = []string{selector} }
 }
 
-// PartTrigger fires client-side events when the part arrives, before it is swapped, via
-// HX-Trigger. The value is an event name, or the JSON form htmx accepts to pass event detail.
+// PartTrigger fires client events once the part is swapped, through the part's HX-Trigger
+// header. The value is a comma-separated list of event names, or a JSON object of event name
+// to detail, where a detail with a target key fires the event on that element instead.
 func PartTrigger(events string) PartOption {
 	return func(h textproto.MIMEHeader) { h[HXTriggerHeader] = []string{events} }
+}
+
+// PartRefresh makes the client reload the page once the part is handled, through the
+// part's HX-Refresh header.
+func PartRefresh() PartOption {
+	return func(h textproto.MIMEHeader) {
+		h.Set(HXRefreshHeader, boolTrue)
+	}
+}
+
+// PartRedirect makes the client navigate to url with a full page load once the part is
+// handled, through the part's HX-Redirect header.
+func PartRedirect(url string) PartOption {
+	return func(h textproto.MIMEHeader) {
+		h.Set(HXRedirectHeader, url)
+	}
+}
+
+// PartLocation makes the client fetch url and swap it in without a full page load once the
+// part is handled, through the part's HX-Location header. The value is a path, or the object
+// form that HxLocationWith writes.
+func PartLocation(url string) PartOption {
+	return func(h textproto.MIMEHeader) {
+		h.Set(HXLocationHeader, url)
+	}
+}
+
+// PartID gives the part an HX-Part-ID header. The client remembers the id of the last part it
+// swapped and sends it back as HX-Last-Part-ID when it reconnects, so a handler can resume the
+// stream after that part instead of starting again. Ids are the server's own scheme; a
+// monotonic counter or a timestamp both work.
+func PartID(id string) PartOption {
+	return func(h textproto.MIMEHeader) {
+		h.Set(HXPartIDHeader, id)
+	}
 }

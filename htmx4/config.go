@@ -23,6 +23,22 @@ func Config() *config {
 	}
 }
 
+// LogAll turns on htmx's console logging of every event it dispatches. Defaults to false.
+func (c *config) LogAll(log bool) *config {
+	c.settings["logAll"] = log
+
+	return c
+}
+
+// Prefix sets an extra attribute prefix that htmx reads beside hx-, so data-hx-get works
+// as hx-get. Defaults to "data-hx-". The typed setters in this package always write the
+// hx- form.
+func (c *config) Prefix(prefix string) *config {
+	c.settings["prefix"] = prefix
+
+	return c
+}
+
 // HistoryEnabled controls whether htmx tracks history for back/forward navigation.
 // When the user navigates back, htmx re-fetches the page and swaps it into the body
 // (or into the hx-history-elt element if one is present). Defaults to true; pass false
@@ -157,6 +173,15 @@ func (c *config) Mode(mode string) *config {
 // the configured separator.
 func (c *config) MetaCharacter(char string) *config {
 	c.settings["metaCharacter"] = char
+
+	return c
+}
+
+// AllowEmptySwapAfterOOB controls what happens to the main swap target when a response holds
+// only out-of-band content. By default the main swap is skipped, so the target keeps what it
+// had. Pass true to swap the empty remainder in, which clears the target. Defaults to false.
+func (c *config) AllowEmptySwapAfterOOB(allow bool) *config {
+	c.settings["allowEmptySwapAfterOOB"] = allow
 
 	return c
 }

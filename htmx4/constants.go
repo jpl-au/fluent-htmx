@@ -20,6 +20,16 @@ const (
 	HXTargetHeader                = "HX-Target"
 	HXSourceHeader                = "HX-Source"
 	HXRequestTypeHeader           = "HX-Request-Type"
+	HXPTagHeader                  = "HX-PTag" // Sent by the ptag extension with the stored tag; the server answers with the same header, see HxPTag
+)
+
+// Resume headers sent by the client when a stream reconnects. The SSE extension sends the
+// id of the last event it handled as Last-Event-ID, and the multipart extension sends the
+// HX-Part-ID of the last part it swapped as HX-Last-Part-ID. Read them to resume a stream
+// from where the browser left off; see [SSEWriter.SendEvent] and [PartID].
+const (
+	LastEventIDHeader  = "Last-Event-ID"
+	HXLastPartIDHeader = "HX-Last-Part-ID"
 )
 
 // HTMX response headers sent by the server.
@@ -37,4 +47,5 @@ const (
 	HXRetargetHeader   = "HX-Retarget"
 	HXReselectHeader   = "HX-Reselect"
 	HXDownloadHeader   = "HX-Download"
+	HXPartIDHeader     = "HX-Part-ID" // On a multipart part; set with PartID
 )

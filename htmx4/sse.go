@@ -5,6 +5,17 @@ package htmx
 // Unnamed SSE messages are swapped automatically, and named events are dispatched as DOM
 // events (listen for them with HxTrigger).
 
+// SSERelease is when the request that opened an SSE stream is released. Set it page-wide with
+// Config().SSEReleaseOn, or per element with HxConfig("sse.releaseOn:first"). The server can
+// also release at any moment with [SSEWriter.Release].
+type SSERelease string
+
+const (
+	SSEReleaseImmediate SSERelease = "immediate" // As soon as the stream opens; the default for hx-sse:connect
+	SSEReleaseFirst     SSERelease = "first"     // After the first message is swapped
+	SSEReleaseEnd       SSERelease = "end"       // When the stream ends; the default for a one-shot response
+)
+
 // SSEConnect establishes a Server-Sent Events connection to the given URL.
 // The connection remains open and automatically reconnects on failure.
 func (h *Wrapper) SSEConnect(url string) *Wrapper {

@@ -3,6 +3,8 @@ package htmx
 import (
 	"strings"
 	"testing"
+
+	"github.com/jpl-au/fluent-htmx/htmx4/swap"
 )
 
 func TestConfigToMetaTag(t *testing.T) {
@@ -74,6 +76,39 @@ func TestConfigChaining(t *testing.T) {
 	for _, expected := range []string{"history", "defaultSwap", "defaultTimeout", "mode", "noSwap", "morphSkip"} {
 		if !strings.Contains(jsonStr, expected) {
 			t.Errorf("Chained config missing %s: %s", expected, jsonStr)
+		}
+	}
+}
+
+// Extension settings nest under the extension's own key, which is how each extension reads
+// them from htmx.config.
+func TestConfigExtensionGroups(t *testing.T) {
+	cfg := Config().
+		SSEReleaseOn(SSEReleaseFirst).SSEReconnectDelay(250).
+		WSReconnectCodes([]int{1006}).WSProtocols([]string{"chat"}).
+		LiveInputDebounce(50).
+		PreloadBoostTimeout(2000).
+		HistoryCacheEnabled(true).HistoryCacheSwapStyle(swap.OuterSync).
+		CompatUseExplicitInheritance(true).
+		LogAll(true).Prefix("data-hx-")
+
+	got, err := cfg.ToJSON()
+	if err != nil {
+		t.Fatalf("ToJSON() returned error: %v", err)
+	}
+
+	for _, frag := range []string{
+		`"sse":{"reconnectDelay":250,"releaseOn":"first"}`,
+		`"ws":{"protocols":["chat"],"reconnectCodes":[1006]}`,
+		`"live":{"inputDebounce":50}`,
+		`"preload":{"boostTimeout":2000}`,
+		`"historyCache":{"disable":false,"swapStyle":"outerSync"}`,
+		`"compat":{"useExplicitInheritace":true}`,
+		`"logAll":true`,
+		`"prefix":"data-hx-"`,
+	} {
+		if !strings.Contains(got, frag) {
+			t.Errorf("ToJSON() missing %s in %s", frag, got)
 		}
 	}
 }

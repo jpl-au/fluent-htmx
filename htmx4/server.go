@@ -18,9 +18,10 @@ type triggerEvent struct {
 }
 
 // TriggerBuilder accumulates client-side events to fire after a response and writes them
-// as the HX-Trigger response header. All events fire immediately when the response is
-// received. Use it to notify the page that something happened server-side (for example an
-// item was saved) without coupling that signal to the swapped content.
+// as the HX-Trigger response header. htmx fires them on the requesting element once the
+// swap has completed, so a handler can read the new content. Use it to notify the page
+// that something happened server-side (for example an item was saved) without coupling
+// that signal to the swapped content.
 type TriggerBuilder struct {
 	w        http.ResponseWriter
 	triggers []triggerEvent
@@ -122,14 +123,91 @@ func HxRedirect(w http.ResponseWriter, r *http.Request, url string, code int) {
 
 // HxPushURL pushes a new URL into the browser's history stack after the swap.
 // Unlike client-side hx-push-url, this lets the server control the URL based on
-// request processing (e.g. pushing a canonical URL after a form submission).
+// request processing (e.g. pushing a canonical URL after a form submission). The
+// value "true" pushes the request's own URL, and "false" stops a push the element
+// asked for.
 func HxPushURL(w http.ResponseWriter, url string) {
 	w.Header().Set(HXPushURLHeader, url)
 }
 
+// HxLastEventID returns the id of the last Server-Sent Event the client handled, sent as
+// Last-Event-ID when the SSE extension reconnects, or "" on a first connection. Pair it with
+// the ID field of [Event] to resume a stream.
+func HxLastEventID(r *http.Request) string {
+	return r.Header.Get(LastEventIDHeader)
+}
+
+// HxLastPartID returns the HX-Part-ID of the last multipart part the client swapped, sent as
+// HX-Last-Part-ID when the multipart extension reconnects, or "" on a first connection. Pair
+// it with [PartID] to resume a stream.
+func HxLastPartID(r *http.Request) string {
+	return r.Header.Get(HXLastPartIDHeader)
+}
+
+// Location is the object form of the HX-Location header, for a client-side redirect that
+// needs more than a path. Path is the URL to fetch; every other field is optional and
+// overrides how the response is applied. Push and Replace choose the history handling: the
+// default pushes the new URL, Replace replaces the current entry, and NoPush leaves history
+// alone.
+type Location struct {
+	Path    string            `json:"path"`
+	Source  string            `json:"source,omitempty"`  // CSS selector for the element the request is issued from
+	Event   string            `json:"event,omitempty"`   // Event that triggers the request
+	Target  string            `json:"target,omitempty"`  // CSS selector for the swap target
+	Swap    swap.Strategy     `json:"swap,omitempty"`    // Swap style for the response
+	Select  string            `json:"select,omitempty"`  // CSS selector for the part of the response to swap
+	Values  map[string]any    `json:"values,omitempty"`  // Extra request values
+	Headers map[string]string `json:"headers,omitempty"` // Extra request headers
+	Replace bool              `json:"replace,omitempty"` // Replace the current history entry instead of pushing
+	NoPush  bool              `json:"-"`                 // Leave history untouched
+}
+
+// HxLocationWith sets the HX-Location header from a [Location], for a client-side redirect
+// with a target, swap or history override. Use HxLocation when a plain path is enough.
+func HxLocationWith(w http.ResponseWriter, loc Location) error {
+	out := map[string]any{"path": loc.Path}
+	if loc.Source != "" {
+		out["source"] = loc.Source
+	}
+	if loc.Event != "" {
+		out["event"] = loc.Event
+	}
+	if loc.Target != "" {
+		out["target"] = loc.Target
+	}
+	if loc.Swap != "" {
+		out["swap"] = string(loc.Swap)
+	}
+	if loc.Select != "" {
+		out["select"] = loc.Select
+	}
+	if len(loc.Values) > 0 {
+		out["values"] = loc.Values
+	}
+	if len(loc.Headers) > 0 {
+		out["headers"] = loc.Headers
+	}
+	if loc.Replace {
+		out["replace"] = true
+	}
+	if loc.NoPush {
+		out["push"] = false
+	}
+
+	data, err := json.Marshal(out)
+	if err != nil {
+		return fmt.Errorf("failed to encode HX-Location: %w", err)
+	}
+	w.Header().Set(HXLocationHeader, string(data))
+
+	return nil
+}
+
 // HxLocation performs a client-side redirect without a full page reload.
 // The value can be a plain URL string or a JSON object with path, source, event,
-// target, swap, select, values and headers properties for fine-grained control.
+// target, swap, select, values and headers properties for fine-grained control. The
+// new URL is pushed into history unless the object sets push:false, or sets replace
+// to replace the current entry instead.
 func HxLocation(w http.ResponseWriter, url string) {
 	w.Header().Set(HXLocationHeader, url)
 }
@@ -178,9 +256,10 @@ func NewTrigger(w http.ResponseWriter) *TriggerBuilder {
 	}
 }
 
-// AddTrigger queues an event to fire when the response is received.
-// If details is non-nil, it is included as a JSON object alongside the event name.
-// Call Write to finalise and send.
+// AddTrigger queues an event to fire after the response is swapped. If details is
+// non-nil, it is sent as the event detail; a map with a "target" key holding a CSS
+// selector fires the event on that element instead of the requesting one. Call Write to
+// finalise and send.
 func (tb *TriggerBuilder) AddTrigger(eventName string, details any) *TriggerBuilder {
 	tb.triggers = append(tb.triggers, triggerEvent{Name: eventName, Details: details})
 

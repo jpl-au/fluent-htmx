@@ -7,7 +7,7 @@ package htmx
 //
 // hx-head is an htmx 4 extension shipped as a separate script (dist/ext/hx-head.js). It is
 // not one of the extensions bundled in this htmax.js build (sse, ws, preload,
-// browser-indicator, download, hx-optimistic, hx-targets, hx-live). Without the hx-head
+// browser-indicator, download, hx-pending, hx-targets, hx-live). Without the hx-head
 // extension loaded, core htmx only swaps in the response title and ignores this attribute.
 func (h *Wrapper) HxHead(mode string) *Wrapper {
 	h.element.SetAttribute("hx-head", mode)

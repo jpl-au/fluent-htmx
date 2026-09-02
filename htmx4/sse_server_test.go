@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/jpl-au/fluent/text"
 )
@@ -167,6 +168,78 @@ func TestSSESendBytesNil(t *testing.T) {
 
 	want := "event: done\ndata: \n\n"
 	if got := w.Body.String(); got != want {
+		t.Errorf("body = %q, want %q", got, want)
+	}
+}
+
+func TestSSESendEvent(t *testing.T) {
+	w := httptest.NewRecorder()
+	sse, err := NewSSE(w)
+	if err != nil {
+		t.Fatalf("NewSSE() returned error: %v", err)
+	}
+
+	err = sse.SendEvent(Event{Name: "tick", ID: "42", Retry: 2 * time.Second, Data: []byte("<p>a</p>\n<p>b</p>")})
+	if err != nil {
+		t.Fatalf("SendEvent() returned error: %v", err)
+	}
+
+	want := "event: tick\nid: 42\nretry: 2000\ndata: <p>a</p>\ndata: <p>b</p>\n\n"
+	if got := w.Body.String(); got != want {
+		t.Errorf("body = %q, want %q", got, want)
+	}
+}
+
+// An unnamed event with no data still ends with one empty data line, or the browser
+// would never deliver it.
+func TestSSESendEventEmpty(t *testing.T) {
+	w := httptest.NewRecorder()
+	sse, err := NewSSE(w)
+	if err != nil {
+		t.Fatalf("NewSSE() returned error: %v", err)
+	}
+
+	if err := sse.SendEvent(Event{}); err != nil {
+		t.Fatalf("SendEvent() returned error: %v", err)
+	}
+
+	if got, want := w.Body.String(), "data: \n\n"; got != want {
+		t.Errorf("body = %q, want %q", got, want)
+	}
+}
+
+func TestSSERelease(t *testing.T) {
+	w := httptest.NewRecorder()
+	sse, err := NewSSE(w)
+	if err != nil {
+		t.Fatalf("NewSSE() returned error: %v", err)
+	}
+
+	if err := sse.Release(); err != nil {
+		t.Fatalf("Release() returned error: %v", err)
+	}
+
+	if got, want := w.Body.String(), "event: hx:release\ndata: \n\n"; got != want {
+		t.Errorf("body = %q, want %q", got, want)
+	}
+}
+
+// An unnamed message is what the client swaps, so Swap must write no event line.
+func TestSSESwap(t *testing.T) {
+	w := httptest.NewRecorder()
+	sse, err := NewSSE(w)
+	if err != nil {
+		t.Fatalf("NewSSE() returned error: %v", err)
+	}
+
+	if err := sse.Swap(text.RawText("<p>x</p>")); err != nil {
+		t.Fatalf("Swap() returned error: %v", err)
+	}
+	if err := sse.SwapBytes([]byte("<p>y</p>")); err != nil {
+		t.Fatalf("SwapBytes() returned error: %v", err)
+	}
+
+	if got, want := w.Body.String(), "data: <p>x</p>\n\ndata: <p>y</p>\n\n"; got != want {
 		t.Errorf("body = %q, want %q", got, want)
 	}
 }
